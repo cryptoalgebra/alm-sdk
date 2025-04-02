@@ -4,7 +4,6 @@ import { SupportedDex } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
 import { getAlgebraVaultContract } from '../contracts';
-import { getTokenDecimals } from './_totalBalances';
 import formatBigInt from '../utils/formatBigInt';
 
 const univ3prices = require('@thanpolas/univ3prices');
@@ -43,21 +42,25 @@ export async function getVaultPositions(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   dex: SupportedDex,
+  decimals0?: number,
+  decimals1?: number,
 ): Promise<VaultPositionsInfo> {
-  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
-  const decimals0 = await getTokenDecimals(vault.tokenA, jsonProvider, chainId);
-  const decimals1 = await getTokenDecimals(vault.tokenB, jsonProvider, chainId);
+  const { vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
   const tokenDecimals = [decimals0, decimals1] as [number, number];
   const isInv = vault.allowTokenB;
   const vaultContract = getAlgebraVaultContract(vaultAddress, jsonProvider);
   try {
-    const baseLower = await vaultContract.baseLower();
-    const baseUpper = await vaultContract.baseUpper();
-    const limitLower = await vaultContract.limitLower();
-    const limitUpper = await vaultContract.limitUpper();
     const currentTick = await vaultContract.currentTick();
-    const basePosition = await vaultContract.getBasePosition();
-    const limitPosition = await vaultContract.getLimitPosition();
+    const [baseLower, baseUpper, basePosition] = await Promise.all([
+      vaultContract.baseLower(),
+      vaultContract.baseUpper(),
+      vaultContract.getBasePosition(),
+    ]);
+    const [limitLower, limitUpper, limitPosition] = await Promise.all([
+      vaultContract.limitLower(),
+      vaultContract.limitUpper(),
+      vaultContract.getLimitPosition(),
+    ]);
     const priceAtBaseLower = getPriceInDepositToken(isInv, tokenDecimals, baseLower);
     const priceAtBaseUpper = getPriceInDepositToken(isInv, tokenDecimals, baseUpper);
     const priceAtLimitLower = getPriceInDepositToken(isInv, tokenDecimals, limitLower);

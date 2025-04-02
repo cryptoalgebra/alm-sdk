@@ -7,7 +7,6 @@ import { SupportedDex, SupportedChainId, Fees, VaultTransactionEvent, VaultState
 // eslint-disable import/no-cycle
 import { graphUrls } from '../graphql/constants';
 import {
-  allEventsNoCollectFeesQuery,
   allEventsQuery,
   rebalancesQuery,
   vaultCollectFeesQuery,
@@ -47,7 +46,7 @@ export async function _getAllEvents(
     : '0';
 
   const supportsCollectFees = graphUrls[chainId as SupportedChainId]![dex]?.supportsCollectFees;
-  const query = supportsCollectFees ? allEventsQuery : allEventsNoCollectFeesQuery;
+  const query = allEventsQuery;
 
   const allEvents = [] as Fees[];
   let endOfData = false;

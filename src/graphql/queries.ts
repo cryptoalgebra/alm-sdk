@@ -191,47 +191,6 @@ export const allEventsQuery = (page: number) => gql`
   }
 `;
 
-export const allEventsNoCollectFeesQuery = (page: number) => gql`
-  query ($vaultAddress: String!, $createdAtTimestamp_gt: String!) {
-    vaultRebalances(first:1000, skip: ${
-      page * 1000
-    }, where: { vault: $vaultAddress, createdAtTimestamp_gt: $createdAtTimestamp_gt }) {
-      feeAmount0
-      feeAmount1
-      totalAmount0
-      totalAmount1
-      createdAtTimestamp
-      vault
-      sqrtPrice
-      totalSupply
-    },
-    vaultDeposits(first: 1000, skip: ${
-      page * 1000
-    }, where: { vault: $vaultAddress, createdAtTimestamp_gt: $createdAtTimestamp_gt }) {
-      vault
-      createdAtTimestamp
-      totalAmount0
-      totalAmount1
-      totalAmount0BeforeEvent
-      totalAmount1BeforeEvent
-      sqrtPrice
-      totalSupply
-    },
-    vaultWithdraws(first: 1000, skip: ${
-      page * 1000
-    }, where: { vault: $vaultAddress, createdAtTimestamp_gt: $createdAtTimestamp_gt }) {
-      createdAtTimestamp
-      totalAmount0
-      totalAmount1
-      totalAmount0BeforeEvent
-      totalAmount1BeforeEvent
-      vault
-      sqrtPrice
-      totalSupply
-    }
-  }
-`;
-
 export function userBalancesQuery(version: number = 1) {
   if (version === 2) {
     return gql`
