@@ -5,7 +5,7 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from 'ethers';
 // eslint-disable-next-line import/no-unresolved
 import { request } from 'graphql-request';
-import { getIchiVaultContract } from '../contracts';
+import { getAlgebraVaultContract } from '../contracts';
 import {
   SupportedDex,
   UserAmounts,
@@ -16,7 +16,7 @@ import {
   UserBalanceInVaultBN,
   UserBalances,
   VaultShares,
-  ichiVaultDecimals,
+  algebraVaultDecimals,
 } from '../types';
 import formatBigInt from '../utils/formatBigInt';
 // eslint-disable-next-line import/no-cycle
@@ -74,10 +74,10 @@ async function _getUserBalance(
   jsonProvider: JsonRpcProvider,
   raw?: true,
 ) {
-  const vaultContract = getIchiVaultContract(vaultAddress, jsonProvider);
+  const vaultContract = getAlgebraVaultContract(vaultAddress, jsonProvider);
   const shares = await vaultContract.balanceOf(accountAddress);
 
-  return raw ? shares : formatBigInt(shares, ichiVaultDecimals);
+  return raw ? shares : formatBigInt(shares, algebraVaultDecimals);
 }
 
 export async function getUserBalance(
@@ -183,7 +183,7 @@ export async function getAllUserBalances(
     });
     return raw
       ? shares.map((s) => {
-          return { vaultAddress: s.vaultAddress, shares: parseBigInt(s.shares, ichiVaultDecimals) };
+          return { vaultAddress: s.vaultAddress, shares: parseBigInt(s.shares, algebraVaultDecimals) };
         })
       : shares;
   } else {
@@ -338,7 +338,7 @@ export async function getAllUserAmounts(
       const token0Decimals = decodeDecimalsResult(results[baseIndex + 2], token0Address);
       const token1Decimals = decodeDecimalsResult(results[baseIndex + 3], token1Address);
 
-      const userBalance = parseBigInt(share.vaultShareBalance, ichiVaultDecimals);
+      const userBalance = parseBigInt(share.vaultShareBalance, algebraVaultDecimals);
 
       if (!totalSupply.isZero()) {
         const amount0 = userBalance.mul(totalAmounts.total0).div(totalSupply);

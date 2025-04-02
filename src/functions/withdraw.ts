@@ -4,13 +4,13 @@ import { ContractTransaction, Overrides } from '@ethersproject/contracts';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from 'ethers';
 import { MaxUint256 } from '@ethersproject/constants';
-import { getDepositGuardContract, getERC20Contract, getIchiVaultContract } from '../contracts';
+import { getAlgebraVaultDepositGuardContract, getERC20Contract, getAlgebraVaultContract } from '../contracts';
 import parseBigInt from '../utils/parseBigInt';
-import { IchiVault, SupportedChainId, SupportedDex, ichiVaultDecimals } from '../types';
+import { AlgebraVault, SupportedChainId, SupportedDex, algebraVaultDecimals } from '../types';
 import { getGasLimit, calculateGasMargin } from '../types/calculateGasMargin';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
-import { addressConfig } from '../utils/config/addresses';
+import { addressConfig } from '../config/addresses';
 import amountWithSlippage from '../utils/amountWithSlippage';
 import { getUserBalance } from './userBalances';
 import getVaultDeployer from './vaultBasics';
@@ -33,10 +33,10 @@ export async function approveVaultToken(
   const sharesBN = shares
     ? shares instanceof BigNumber
       ? shares
-      : parseBigInt(shares, ichiVaultDecimals)
+      : parseBigInt(shares, algebraVaultDecimals)
     : MaxUint256;
 
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuard.address;
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress;
   if (!depositGuardAddress) {
     throw new Error(`Deposit Guard  for vault ${vaultAddress} not found on chain ${chainId} and dex ${dex}`);
   }
@@ -51,7 +51,7 @@ export async function approveVaultToken(
 async function _isVaultTokenApproved(
   accountAddress: string,
   shares: string | number | BigNumber,
-  vault: IchiVault,
+  vault: AlgebraVault,
   chainId: SupportedChainId,
   jsonProvider: JsonRpcProvider,
   dex: SupportedDex,
@@ -59,13 +59,13 @@ async function _isVaultTokenApproved(
   const signer = jsonProvider.getSigner(accountAddress);
 
   const vaultTokenContract = getERC20Contract(vault.id, signer);
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuard.address;
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress;
   if (!depositGuardAddress) {
     throw new Error(`Deposit Guard  for vault ${vault.id} not found on chain ${chainId} and dex ${dex}`);
   }
   const currentAllowanceBN = await vaultTokenContract.allowance(accountAddress, depositGuardAddress);
 
-  const sharesBN = shares instanceof BigNumber ? shares : parseBigInt(shares, ichiVaultDecimals);
+  const sharesBN = shares instanceof BigNumber ? shares : parseBigInt(shares, algebraVaultDecimals);
 
   return currentAllowanceBN.gt(BigNumber.from(0)) && currentAllowanceBN.gte(sharesBN);
 }
@@ -91,7 +91,7 @@ export async function withdraw(
 ): Promise<ContractTransaction> {
   const { chainId } = await validateVaultData(vaultAddress, jsonProvider, dex);
   const signer = jsonProvider.getSigner(accountAddress);
-  const vaultContract = getIchiVaultContract(vaultAddress, signer);
+  const vaultContract = getAlgebraVaultContract(vaultAddress, signer);
 
   const userShares = getUserBalance(accountAddress, vaultAddress, jsonProvider, dex, true);
   const withdrawShares = shares instanceof BigNumber ? shares : parseBigInt(shares, 18);
@@ -121,16 +121,13 @@ export async function withdrawWithSlippage(
   overrides?: Overrides,
 ): Promise<ContractTransaction> {
   const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
-  if (addressConfig[chainId as SupportedChainId][dex]?.depositGuard.version !== 2) {
-    throw new Error(`Unsupported function for vault ${vaultAddress} on chain ${chainId} and dex ${dex}`);
-  }
 
   const signer = jsonProvider.getSigner(accountAddress);
 
   const vaultDeployerAddress = getVaultDeployer(vaultAddress, chainId, dex);
 
   // obtain Deposit Guard contract
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuard.address;
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress;
   if (!depositGuardAddress) {
     throw new Error(`Deposit Guard  for vault ${vaultAddress} not found on chain ${chainId} and dex ${dex}`);
   }
@@ -150,7 +147,7 @@ export async function withdrawWithSlippage(
     );
   }
 
-  const depositGuardContract = getDepositGuardContract(depositGuardAddress, signer);
+  const depositGuardContract = getAlgebraVaultDepositGuardContract(depositGuardAddress, signer);
   const maxGasLimit = getGasLimit();
 
   // the first call: get estimated LP amount
@@ -216,13 +213,6 @@ export async function withdrawNativeToken(
   overrides?: Overrides,
 ): Promise<ContractTransaction> {
   const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
-  // if (chainId === SupportedChainId.celo) {
-  //   throw new Error(`This function is not supported on chain ${chainId}`);
-  // }
-
-  if (addressConfig[chainId as SupportedChainId][dex]?.depositGuard.version !== 2) {
-    throw new Error(`Unsupported function for vault ${vaultAddress} on chain ${chainId} and dex ${dex}`);
-  }
 
   const signer = jsonProvider.getSigner(accountAddress);
 
@@ -244,11 +234,11 @@ export async function withdrawNativeToken(
   }
 
   // obtain Deposit Guard contract
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuard.address;
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress;
   if (!depositGuardAddress) {
     throw new Error(`Deposit Guard  for vault ${vaultAddress} not found on chain ${chainId} and dex ${dex}`);
   }
-  const depositGuardContract = getDepositGuardContract(depositGuardAddress, signer);
+  const depositGuardContract = getAlgebraVaultDepositGuardContract(depositGuardAddress, signer);
   const wrappedNative = await depositGuardContract.WRAPPED_NATIVE();
   if (
     wrappedNative.toLowerCase() !== vault.tokenA.toLowerCase() &&

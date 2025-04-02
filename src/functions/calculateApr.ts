@@ -1,14 +1,13 @@
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from 'ethers';
 import {
-  IchiVault,
+  AlgebraVault,
   PriceChange,
-  SupportedChainId,
   SupportedDex,
   TotalAmountsBN,
   VaultApr,
   VaultState,
-  ichiVaultDecimals,
+  algebraVaultDecimals,
 } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
@@ -43,7 +42,7 @@ export function getLpPriceAt(
     const tvl = !isVaultInverted
       ? Number(formattedTotalAmount0) + Number(formattedTotalAmount1) * price
       : Number(formattedTotalAmount1) + Number(formattedTotalAmount0) * price;
-    const totalSupply = Number(formatBigInt(e.totalSupply, ichiVaultDecimals));
+    const totalSupply = Number(formatBigInt(e.totalSupply, algebraVaultDecimals));
     const days = millisecondsToDays(Date.now() - Number(e.createdAtTimestamp) * 1000);
     if (totalSupply === 0) {
       return null;
@@ -56,30 +55,21 @@ export async function getLpApr(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   dex: SupportedDex,
-  chainId: SupportedChainId,
-  vault: IchiVault,
+  vault: AlgebraVault,
   token0Decimals: number,
   token1Decimals: number,
   // timeIntervals?: number[],
-): Promise<{ aprs: (VaultApr | null)[]; vault: IchiVault; tvl: number; totalAmounts: TotalAmountsBN }> {
+): Promise<{ aprs: (VaultApr | null)[]; vault: AlgebraVault; tvl: number; totalAmounts: TotalAmountsBN }> {
   const key = `lpApr-${dex}-${vaultAddress}`;
   const cachedData = cache.get(key);
   if (cachedData) {
-    return cachedData as { aprs: (VaultApr | null)[]; vault: IchiVault; tvl: number; totalAmounts: TotalAmountsBN };
+    return cachedData as { aprs: (VaultApr | null)[]; vault: AlgebraVault; tvl: number; totalAmounts: TotalAmountsBN };
   }
   const ttl = 30 * 60 * 1000;
 
   const isInv = vault.allowTokenB;
 
-  const { tvl, totalAmounts } = await getVaultTvl(
-    vault,
-    jsonProvider,
-    chainId,
-    dex,
-    isInv,
-    token0Decimals,
-    token1Decimals,
-  );
+  const { tvl, totalAmounts } = await getVaultTvl(vault, jsonProvider, isInv, token0Decimals, token1Decimals);
   // const totalSupply = await _getTotalSupply(vault.id, jsonProvider);
 
   // if (Number(totalSupply) === 0) {

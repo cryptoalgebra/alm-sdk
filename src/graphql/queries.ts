@@ -1,40 +1,6 @@
 // eslint-disable-next-line import/no-unresolved
 import { gql } from 'graphql-request';
 
-export function vaultQuery(includeHoldersCount: boolean, version: number = 1) {
-  // Version 2 uses token0/token1 instead of tokenA/tokenB
-  if (version === 2) {
-    return gql`
-      query ($vaultAddress: String!) {
-        ichiVault(id: $vaultAddress) {
-          id
-          token0
-          token1
-          allowToken0
-          allowToken1
-          fee
-          ${includeHoldersCount ? 'holdersCount' : ''}
-        }
-      }
-    `;
-  }
-
-  // Default to version 1
-  return gql`
-    query ($vaultAddress: String!) {
-      ichiVault(id: $vaultAddress) {
-        id
-        tokenA
-        tokenB
-        allowTokenA
-        allowTokenB
-        fee
-        ${includeHoldersCount ? 'holdersCount' : ''}
-      }
-    }
-  `;
-}
-
 export function vaultQueryAlgebra(includeHoldersCount: boolean, version: number = 1) {
   // Version 2 uses token0/token1 instead of tokenA/tokenB
   if (version === 2) {

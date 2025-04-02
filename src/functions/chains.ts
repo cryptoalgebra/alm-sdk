@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
 import { SupportedDex, SupportedChainId } from '../types';
 // eslint-disable-next-line import/no-cycle
-import { addressConfig } from '../utils/config/addresses';
+import { addressConfig } from '../config/addresses';
 
 export function getSupportedDexes(chainId: SupportedChainId): SupportedDex[] {
   const chainConfig = addressConfig[chainId];

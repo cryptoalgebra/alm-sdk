@@ -1,15 +1,13 @@
 /* eslint-disable import/prefer-default-export */
 import { JsonRpcProvider } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
 import {
   DepositTokenRatio,
   Fees,
-  SupportedChainId,
   SupportedDex,
   TotalAmounts,
   VaultMetrics,
   VaultTransactionEvent,
-  ichiVaultDecimals,
+  algebraVaultDecimals,
 } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
@@ -17,14 +15,8 @@ import { getTokenDecimals } from './_totalBalances';
 import { getCurrentDtr } from './priceFromPool';
 import { daysToMilliseconds } from '../utils/timestamps';
 import getPrice from '../utils/getPrice';
-import {
-  getAlgebraIntegralPoolContract,
-  getAlgebraPoolContract,
-  getIchiVaultContract,
-  getUniswapV3PoolContract,
-} from '../contracts';
+import { getAlgebraPoolContract, getAlgebraVaultContract } from '../contracts';
 import formatBigInt from '../utils/formatBigInt';
-import { addressConfig } from '../utils/config/addresses';
 import { getAverageDtr, getDtrAtFeeCollectionEvent, getDtrAtTransactionEvent } from './calculateDtr';
 import { getTotalFeesAmountInBaseTokens } from './calculateFees';
 import { getLpPriceAt } from './calculateApr';
@@ -43,7 +35,7 @@ export async function getVaultMetrics(
   const isInv = vault.allowTokenB;
   const depositTokenDecimals = isInv ? decimals1 : decimals0;
   const scarceTokenDecimals = isInv ? decimals0 : decimals1;
-  const vaultContract = getIchiVaultContract(vaultAddress, jsonProvider);
+  const vaultContract = getAlgebraVaultContract(vaultAddress, jsonProvider);
 
   // to remove/rewrite
   const arrDays = timeIntervals && timeIntervals.length > 0 ? timeIntervals : [1, 7, 30];
@@ -61,31 +53,18 @@ export async function getVaultMetrics(
       1: formatBigInt(totalAmountsBN.total1, decimals1),
     } as TotalAmounts;
 
-    let sqrtPrice: BigNumber;
     const poolAddress: string = await vaultContract.pool();
 
-    if (addressConfig[chainId as SupportedChainId]![dex]?.isAlgebra) {
-      if (addressConfig[chainId as SupportedChainId]![dex]?.ammVersion === 'algebraIntegral') {
-        const poolContract = getAlgebraIntegralPoolContract(poolAddress, jsonProvider);
-        const globalState = await poolContract.globalState();
-        sqrtPrice = globalState.price;
-      } else {
-        const poolContract = getAlgebraPoolContract(poolAddress, jsonProvider);
-        const globalState = await poolContract.globalState();
-        sqrtPrice = globalState.price;
-      }
-    } else {
-      const poolContract = getUniswapV3PoolContract(poolAddress, jsonProvider);
-      const slot0 = await poolContract.slot0();
-      sqrtPrice = slot0.sqrtPriceX96;
-    }
+    const poolContract = getAlgebraPoolContract(poolAddress, jsonProvider);
+    const sqrtPrice = (await poolContract.globalState()).price;
+
     const price = getPrice(isInv, sqrtPrice, depositTokenDecimals, scarceTokenDecimals, 15);
     currTvl = !isInv
       ? Number(totalAmounts.total0) + Number(totalAmounts.total1) * price
       : Number(totalAmounts.total1) + Number(totalAmounts.total0) * price;
 
     const totalSupplyBN = await vaultContract.totalSupply();
-    const totalSupply = formatBigInt(totalSupplyBN, ichiVaultDecimals);
+    const totalSupply = formatBigInt(totalSupplyBN, algebraVaultDecimals);
 
     if (Number(totalSupply) === 0) {
       throw new Error(`Could not get LP price. Vault total supply is 0 for vault ${vaultAddress} on chain ${chainId}`);

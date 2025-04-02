@@ -1,18 +1,18 @@
 // eslint-disable-next-line import/no-unresolved
 import { request } from 'graphql-request';
 import { JsonRpcProvider } from '@ethersproject/providers';
-import { SupportedDex, SupportedChainId, IchiVault } from '../types';
+import { SupportedDex, SupportedChainId, AlgebraVault } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { VaultQueryData, VaultsByPoolQueryData, VaultsByTokensQueryData } from '../types/vaultQueryData';
-import { getIchiVaultContract } from '../contracts';
-import { vaultByPoolQuery, vaultByTokensQuery, vaultQuery, vaultQueryAlgebra } from '../graphql/queries';
+import { getAlgebraVaultContract } from '../contracts';
+import { vaultByPoolQuery, vaultByTokensQuery, vaultQueryAlgebra } from '../graphql/queries';
 import getGraphUrls from '../utils/getGraphUrls';
-import { addressConfig } from '../utils/config/addresses';
+import { addressConfig } from '../config/addresses';
 import cache from '../utils/cache';
 // eslint-disable-next-line import/no-cycle
 import { getLpApr } from './calculateApr';
 
-function normalizeVaultData(vaultData: any): IchiVault {
+function normalizeVaultData(vaultData: any): AlgebraVault {
   // If it's a v2 response (has token0/token1)
   if ('token0' in vaultData && 'token1' in vaultData) {
     return {
@@ -30,8 +30,8 @@ function normalizeVaultData(vaultData: any): IchiVault {
   return vaultData;
 }
 
-async function getVaultInfoFromContract(vaultAddress: string, jsonProvider: JsonRpcProvider): Promise<IchiVault> {
-  const vault: IchiVault = {
+async function getVaultInfoFromContract(vaultAddress: string, jsonProvider: JsonRpcProvider): Promise<AlgebraVault> {
+  const vault: AlgebraVault = {
     id: vaultAddress,
     tokenA: '',
     tokenB: '',
@@ -40,7 +40,7 @@ async function getVaultInfoFromContract(vaultAddress: string, jsonProvider: Json
   };
 
   try {
-    const vaultContract = getIchiVaultContract(vaultAddress, jsonProvider);
+    const vaultContract = getAlgebraVaultContract(vaultAddress, jsonProvider);
 
     const [tokenA, tokenB, allowTokenA, allowTokenB] = await Promise.all([
       vaultContract.token0(),
@@ -57,7 +57,7 @@ async function getVaultInfoFromContract(vaultAddress: string, jsonProvider: Json
   return vault;
 }
 
-async function sendVaultQueryRequest(url: string, vaultAddress: string, query: string): Promise<IchiVault> {
+async function sendVaultQueryRequest(url: string, vaultAddress: string, query: string): Promise<AlgebraVault> {
   return request<VaultQueryData, { vaultAddress: string }>(url, query, {
     vaultAddress: vaultAddress.toLowerCase(),
   }).then(({ ichiVault }) => ichiVault);
@@ -67,7 +67,7 @@ async function sendVaultsByTokensRequest(
   token1: string,
   token2: string,
   query: string,
-): Promise<IchiVault[]> {
+): Promise<AlgebraVault[]> {
   return request<VaultsByTokensQueryData, { addressTokenA: string; addressTokenB: string }>(url, query, {
     addressTokenA: token1,
     addressTokenB: token2,
@@ -83,26 +83,23 @@ function noHoldersCount(dex: SupportedDex): boolean {
   return dex === SupportedDex.Henjin;
 }
 
-export async function getIchiVaultInfo(
+export async function getAlgebraVaultInfo(
   chainId: SupportedChainId,
   dex: SupportedDex,
   vaultAddress: string,
   jsonProvider?: JsonRpcProvider,
-): Promise<IchiVault> {
+): Promise<AlgebraVault> {
   const key = `vault-${chainId}-${vaultAddress}`;
   const ttl = 6 * 60 * 60 * 1000; // 6 hours
   const cachedData = cache.get(key);
   if (cachedData) {
-    return cachedData as IchiVault;
+    return cachedData as AlgebraVault;
   }
 
   const includeHoldersCount = !noHoldersCount(dex);
 
   const { url, publishedUrl, version } = getGraphUrls(chainId, dex);
-  const thisQuery =
-    addressConfig[chainId][dex]?.isAlgebra || addressConfig[chainId][dex]?.is2Thick
-      ? vaultQueryAlgebra(includeHoldersCount, version)
-      : vaultQuery(includeHoldersCount, version);
+  const thisQuery = vaultQueryAlgebra(includeHoldersCount, version);
   if (url === 'none' && jsonProvider) {
     const result = await getVaultInfoFromContract(vaultAddress, jsonProvider);
     cache.set(key, result, ttl);
@@ -138,35 +135,34 @@ export async function getIchiVaultInfo(
   }
 }
 
-export interface ExtendedICHIVault extends IchiVault {
+export interface ExtendedAlgebraVault extends AlgebraVault {
   apr: number;
   amount0: bigint;
   amount1: bigint;
 }
 
-export async function getExtendedIchiVaultInfo(
+export async function getExtendedAlgebraVault(
   vaultAddress: string,
   dex: SupportedDex,
   chainId: SupportedChainId,
   jsonProvider: JsonRpcProvider,
   token0Decimals: number,
   token1Decimals: number,
-): Promise<ExtendedICHIVault> {
+): Promise<ExtendedAlgebraVault> {
   const key = `vaultData-${vaultAddress}`;
   const ttl = 2 * 60 * 60 * 1000; // 2 hours
   const cachedData = cache.get(key);
   if (cachedData) {
-    return cachedData as ExtendedICHIVault;
+    return cachedData as ExtendedAlgebraVault;
   }
 
   try {
-    const vault = await getIchiVaultInfo(chainId, dex, vaultAddress, jsonProvider);
+    const vault = await getAlgebraVaultInfo(chainId, dex, vaultAddress, jsonProvider);
 
     const { aprs, totalAmounts } = await getLpApr(
       vaultAddress,
       jsonProvider,
       dex,
-      chainId,
       vault,
       token0Decimals,
       token1Decimals,
@@ -284,14 +280,14 @@ export async function validateVaultData(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   dex: SupportedDex,
-): Promise<{ chainId: SupportedChainId; vault: IchiVault }> {
+): Promise<{ chainId: SupportedChainId; vault: AlgebraVault }> {
   const { chainId } = await jsonProvider.getNetwork();
 
   if (!Object.values(SupportedChainId).includes(chainId)) {
     throw new Error(`Unsupported chainId: ${chainId ?? 'undefined'}`);
   }
 
-  const vault = await getIchiVaultInfo(chainId, dex, vaultAddress, jsonProvider);
+  const vault = await getAlgebraVaultInfo(chainId, dex, vaultAddress, jsonProvider);
 
   return { chainId, vault };
 }

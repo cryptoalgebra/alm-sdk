@@ -16,7 +16,7 @@ export enum SupportedDex {
   CLAMM = 'CLAMM',
 }
 
-export const ichiVaultDecimals = 18;
+export const algebraVaultDecimals = 18;
 
 export type TotalAmountsBN = [BigNumber, BigNumber] & { total0: BigNumber; total1: BigNumber };
 export type UserAmountsBN = [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber };
@@ -33,7 +33,7 @@ export type UserAmountsInVaultBN = {
   userAmounts: UserAmountsBN;
 };
 
-export interface IchiVault {
+export interface AlgebraVault {
   id: string;
   tokenA: string;
   tokenB: string;

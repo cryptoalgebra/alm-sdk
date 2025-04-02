@@ -3,7 +3,7 @@
 
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from '@ethersproject/bignumber';
-import { DepositTokenRatio, IchiVault, SupportedDex, VaultState, VaultTransactionEvent } from '../types';
+import { DepositTokenRatio, AlgebraVault, SupportedDex, VaultState, VaultTransactionEvent } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
 import { getTokenDecimals } from './_totalBalances';
@@ -99,7 +99,7 @@ function getTotalAmountsAtTransactionEvent(
 
 export function getTvlAtTransactionEvent(
   objTransactionEvent: VaultTransactionEvent,
-  vault: IchiVault,
+  vault: AlgebraVault,
   token0decimals: number,
   token1decimals: number,
 ): number {
@@ -118,7 +118,7 @@ export function getTvlAtTransactionEvent(
 
 export function getTvlAtFeeCollectionEvent(
   objFeeCollectionEvent: VaultState,
-  vault: IchiVault,
+  vault: AlgebraVault,
   token0decimals: number,
   token1decimals: number,
 ): number {
@@ -135,7 +135,7 @@ export function getTvlAtFeeCollectionEvent(
 
 function getLpPriceAtFeeCollectionEvent(
   objTransactionEvent: VaultState,
-  vault: IchiVault,
+  vault: AlgebraVault,
   token0decimals: number,
   token1decimals: number,
 ): number {
@@ -146,7 +146,7 @@ function getLpPriceAtFeeCollectionEvent(
 
 function getLpPriceAtTransactionEvent(
   objTransactionEvent: VaultTransactionEvent,
-  vault: IchiVault,
+  vault: AlgebraVault,
   token0decimals: number,
   token1decimals: number,
 ): number {
@@ -227,10 +227,10 @@ export async function getVaultEventsForTimeInterval(
   const currentVaultEvent = {
     atTimestamp: Math.floor(Date.now() / 1000).toString(),
     dtr: await getCurrentDtr(vaultAddress, jsonProvider, dex, isVaultInverted, token0Decimals, token1Decimals),
-    tvl: (await getVaultTvl(vault, jsonProvider, chainId, dex, isVaultInverted, token0Decimals, token1Decimals)).tvl,
+    tvl: (await getVaultTvl(vault, jsonProvider, isVaultInverted, token0Decimals, token1Decimals)).tvl,
     feeAmount: 0,
     lpPrice: await getCurrLpPrice(vault, jsonProvider, dex, chainId, isVaultInverted, token0Decimals, token1Decimals),
-    poolPrice: await getCurrPrice(vault, jsonProvider, chainId, dex, isVaultInverted, token0Decimals, token1Decimals),
+    poolPrice: await getCurrPrice(vault, jsonProvider, isVaultInverted, token0Decimals, token1Decimals),
   } as VaultEvent;
 
   const result = [...arrDeposits, ...arrWithdraws, ...arrRebalances, ...arrOtherFees, currentVaultEvent].sort(

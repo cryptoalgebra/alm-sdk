@@ -145,7 +145,7 @@ export async function getFeesCollectedInfo(
   const token1Decimals = await getTokenDecimals(vault.tokenB, jsonProvider, chainId);
   const isVaultInverted = await isTokenAllowed(1, vaultAddress, jsonProvider, dex);
 
-  const { tvl } = await getVaultTvl(vault, jsonProvider, chainId, dex, isVaultInverted, token0Decimals, token1Decimals);
+  const { tvl } = await getVaultTvl(vault, jsonProvider, isVaultInverted, token0Decimals, token1Decimals);
 
   const defaultArrayDays = [1, 7, 30];
   const arrayDays = forDays && forDays.length > 0 ? forDays : defaultArrayDays;

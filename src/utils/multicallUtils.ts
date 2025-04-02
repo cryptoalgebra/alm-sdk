@@ -3,8 +3,8 @@ import { Contract } from '@ethersproject/contracts';
 import { Interface } from '@ethersproject/abi';
 import { BigNumber, Signer } from 'ethers';
 import { SupportedChainId } from '../types';
-import { MULTICALL_ADDRESSES } from './config/addresses';
-import { getERC20Contract, getIchiVaultContract } from '../contracts';
+import { MULTICALL_ADDRESSES } from '../config/addresses';
+import { getERC20Contract, getAlgebraVaultContract } from '../contracts';
 import multicallAbi from '../abis/multicall.json';
 
 interface Call {
@@ -43,7 +43,7 @@ export async function multicall(
 }
 
 export function encodeTotalAmountsCall(vaultAddress: string): Call {
-  const vaultInterface = new Interface(getIchiVaultContract(vaultAddress, null as any).interface.format());
+  const vaultInterface = new Interface(getAlgebraVaultContract(vaultAddress, null as any).interface.format());
   return {
     target: vaultAddress,
     gasLimit: 1000000,
@@ -52,7 +52,7 @@ export function encodeTotalAmountsCall(vaultAddress: string): Call {
 }
 
 export function encodeTotalSupplyCall(vaultAddress: string): Call {
-  const vaultInterface = new Interface(getIchiVaultContract(vaultAddress, null as any).interface.format());
+  const vaultInterface = new Interface(getAlgebraVaultContract(vaultAddress, null as any).interface.format());
   return {
     target: vaultAddress,
     gasLimit: 1000000,
@@ -76,7 +76,7 @@ export function decodeTotalAmountsResult(
   if (!result.success) {
     throw new Error('Failed to get total amounts');
   }
-  const vaultInterface = new Interface(getIchiVaultContract(vaultAddress, null as any).interface.format());
+  const vaultInterface = new Interface(getAlgebraVaultContract(vaultAddress, null as any).interface.format());
   const decoded = vaultInterface.decodeFunctionResult('getTotalAmounts', result.returnData);
   return {
     total0: decoded[0],
@@ -88,7 +88,7 @@ export function decodeTotalSupplyResult(result: Result, vaultAddress: string): B
   if (!result.success) {
     throw new Error('Failed to get total supply');
   }
-  const vaultInterface = new Interface(getIchiVaultContract(vaultAddress, null as any).interface.format());
+  const vaultInterface = new Interface(getAlgebraVaultContract(vaultAddress, null as any).interface.format());
   return vaultInterface.decodeFunctionResult('totalSupply', result.returnData)[0];
 }
 

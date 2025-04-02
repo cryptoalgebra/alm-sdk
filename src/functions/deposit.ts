@@ -2,13 +2,13 @@ import { ContractTransaction, Overrides } from '@ethersproject/contracts';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { MaxUint256 } from '@ethersproject/constants';
 import { BigNumber } from 'ethers';
-import { getDepositGuardContract, getERC20Contract, getIchiVaultContract } from '../contracts';
+import { getAlgebraVaultDepositGuardContract, getERC20Contract, getAlgebraVaultContract } from '../contracts';
 import parseBigInt from '../utils/parseBigInt';
-import { SupportedDex, SupportedChainId, IchiVault } from '../types';
+import { SupportedDex, SupportedChainId, AlgebraVault } from '../types';
 import { calculateGasMargin, getGasLimit } from '../types/calculateGasMargin';
 // eslint-disable-next-line import/no-cycle
-import { getIchiVaultInfo, validateVaultData } from './vault';
-import { addressConfig } from '../utils/config/addresses';
+import { getAlgebraVaultInfo, validateVaultData } from './vault';
+import { addressConfig } from '../config/addresses';
 import amountWithSlippage from '../utils/amountWithSlippage';
 import getVaultDeployer from './vaultBasics';
 import { getTokenDecimals } from './_totalBalances';
@@ -24,7 +24,7 @@ export async function isTokenAllowed(
     throw new Error(`Unsupported chainId: ${chainId}`);
   }
 
-  const vault = await getIchiVaultInfo(chainId, dex, vaultAddress, jsonProvider);
+  const vault = await getAlgebraVaultInfo(chainId, dex, vaultAddress, jsonProvider);
   if (!vault) throw new Error(`Vault ${vaultAddress} not found on chain ${chainId} and dex ${dex}`);
 
   const tokenAllowed = vault[tokenIdx === 0 ? 'allowTokenA' : 'allowTokenB'];
@@ -37,7 +37,7 @@ async function _isDepositTokenApproved(
   accountAddress: string,
   tokenIdx: 0 | 1,
   amount: string | number | BigNumber,
-  vault: IchiVault,
+  vault: AlgebraVault,
   chainId: SupportedChainId,
   jsonProvider: JsonRpcProvider,
   dex: SupportedDex,
@@ -45,7 +45,7 @@ async function _isDepositTokenApproved(
   const token = vault[tokenIdx === 0 ? 'tokenA' : 'tokenB'];
 
   const tokenContract = getERC20Contract(token, jsonProvider);
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuard.address ?? '';
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress ?? '';
   const currentAllowanceBN = await tokenContract.allowance(accountAddress, depositGuardAddress);
   const tokenDecimals = await tokenContract.decimals();
 
@@ -91,7 +91,7 @@ export async function approveDepositToken(
       : parseBigInt(amount, +tokenDecimals || 18)
     : MaxUint256;
 
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuard.address ?? '';
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress ?? '';
   const gasLimit =
     overrides?.gasLimit ?? calculateGasMargin(await tokenContract.estimateGas.approve(depositGuardAddress, amountBN));
 
@@ -104,7 +104,7 @@ export async function _getMaxDepositAmount(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
 ): Promise<BigNumber> {
-  const vaultContract = getIchiVaultContract(vaultAddress, jsonProvider);
+  const vaultContract = getAlgebraVaultContract(vaultAddress, jsonProvider);
 
   const maxDepositAmount = tokenIdx === 0 ? vaultContract.deposit0Max() : vaultContract.deposit1Max();
 
@@ -190,8 +190,8 @@ export async function deposit(
   }
 
   // obtain Deposit Guard contract
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuard.address ?? '';
-  const depositGuardContract = getDepositGuardContract(depositGuardAddress, signer);
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress ?? '';
+  const depositGuardContract = getAlgebraVaultDepositGuardContract(depositGuardAddress, signer);
   const maxGasLimit = getGasLimit();
 
   // the first call: get estimated LP amount
@@ -256,9 +256,7 @@ export async function depositNativeToken(
   // if (chainId === SupportedChainId.celo) {
   //   throw new Error(`This function is not supported on chain ${chainId}`);
   // }
-  if (addressConfig[chainId as SupportedChainId][dex]?.depositGuard.version !== 2) {
-    throw new Error(`Unsupported function for vault ${vaultAddress} on chain ${chainId} and dex ${dex}`);
-  }
+
   const signer = jsonProvider.getSigner(accountAddress);
   const vaultDeployerAddress = getVaultDeployer(vaultAddress, chainId, dex);
 
@@ -286,11 +284,11 @@ export async function depositNativeToken(
   }
 
   // obtain Deposit Guard contract
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuard.address;
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress;
   if (!depositGuardAddress) {
     throw new Error(`Deposit Guard not found for vault ${vaultAddress} on chain ${chainId} and dex ${dex}`);
   }
-  const depositGuardContract = getDepositGuardContract(depositGuardAddress, signer);
+  const depositGuardContract = getAlgebraVaultDepositGuardContract(depositGuardAddress, signer);
   const wrappedNative = await depositGuardContract.WRAPPED_NATIVE();
   if (wrappedNative.toLowerCase() !== depositToken.toLowerCase()) {
     throw new Error('Deposit token is not wrapped native token');

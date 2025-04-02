@@ -3,7 +3,7 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { SupportedDex } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
-import { getIchiVaultContract } from '../contracts';
+import { getAlgebraVaultContract } from '../contracts';
 import { getTokenDecimals } from './_totalBalances';
 import formatBigInt from '../utils/formatBigInt';
 
@@ -49,7 +49,7 @@ export async function getVaultPositions(
   const decimals1 = await getTokenDecimals(vault.tokenB, jsonProvider, chainId);
   const tokenDecimals = [decimals0, decimals1] as [number, number];
   const isInv = vault.allowTokenB;
-  const vaultContract = getIchiVaultContract(vaultAddress, jsonProvider);
+  const vaultContract = getAlgebraVaultContract(vaultAddress, jsonProvider);
   try {
     const baseLower = await vaultContract.baseLower();
     const baseUpper = await vaultContract.baseUpper();
