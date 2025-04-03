@@ -1,5 +1,12 @@
 {
-  "CLAMM": {
-    "0x47e8ca40666102ac217286e51660a4e6e6d7f9a3": ["0xd125e12af8aec4c8ebaf2ebf1f17b1e09b2e1227"]
+  "Base": {
+    "CLAMM": {
+      "0x60680db4244a0ed3589ccd48d878d1abfcc88d54": ["0xaf7126b0aa55bfc905f62b6885854c78b1a8bcc5"]
+    }
+  },
+  "BaseSepolia": {
+    "CLAMM": {
+      "0x47e8ca40666102ac217286e51660a4e6e6d7f9a3": ["0xd125e12af8aec4c8ebaf2ebf1f17b1e09b2e1227"]
+    }
   }
 }

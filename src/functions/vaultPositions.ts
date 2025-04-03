@@ -51,26 +51,26 @@ export async function getVaultPositions(
   const vaultContract = getAlgebraVaultContract(vaultAddress, jsonProvider);
   try {
     const currentTick = await vaultContract.currentTick();
-    const [baseLower, baseUpper, basePosition] = await Promise.all([
-      vaultContract.baseLower(),
-      vaultContract.baseUpper(),
-      vaultContract.getBasePosition(),
-    ]);
+    // const [baseLower, baseUpper, basePosition] = await Promise.all([
+    //   vaultContract.baseLower(),
+    //   vaultContract.baseUpper(),
+    //   vaultContract.getBasePosition(),
+    // ]);
     const [limitLower, limitUpper, limitPosition] = await Promise.all([
       vaultContract.limitLower(),
       vaultContract.limitUpper(),
       vaultContract.getLimitPosition(),
     ]);
-    const priceAtBaseLower = getPriceInDepositToken(isInv, tokenDecimals, baseLower);
-    const priceAtBaseUpper = getPriceInDepositToken(isInv, tokenDecimals, baseUpper);
+    // const priceAtBaseLower = getPriceInDepositToken(isInv, tokenDecimals, baseLower);
+    // const priceAtBaseUpper = getPriceInDepositToken(isInv, tokenDecimals, baseUpper);
     const priceAtLimitLower = getPriceInDepositToken(isInv, tokenDecimals, limitLower);
     const priceAtLimitUpper = getPriceInDepositToken(isInv, tokenDecimals, limitUpper);
     const currentPrice = getPriceInDepositToken(isInv, tokenDecimals, currentTick);
-    const basePositionTvl = !isInv
-      ? Number(formatBigInt(basePosition.amount0, decimals0)) +
-        Number(formatBigInt(basePosition.amount1, decimals1)) * currentPrice
-      : Number(formatBigInt(basePosition.amount1, decimals1)) +
-        Number(formatBigInt(basePosition.amount0, decimals0)) * currentPrice;
+    // const basePositionTvl = !isInv
+    //   ? Number(formatBigInt(basePosition.amount0, decimals0)) +
+    //     Number(formatBigInt(basePosition.amount1, decimals1)) * currentPrice
+    //   : Number(formatBigInt(basePosition.amount1, decimals1)) +
+    //     Number(formatBigInt(basePosition.amount0, decimals0)) * currentPrice;
     const limitPositionTvl = !isInv
       ? Number(formatBigInt(limitPosition.amount0, decimals0)) +
         Number(formatBigInt(limitPosition.amount1, decimals1)) * currentPrice
@@ -81,16 +81,16 @@ export async function getVaultPositions(
       currentTick,
       currentPrice,
       positions: [
-        {
-          tickLower: baseLower,
-          tickUpper: baseUpper,
-          priceLower: priceAtBaseLower,
-          priceUpper: priceAtBaseUpper,
-          liquidity: basePosition.liquidity.toString(),
-          amountToken0: basePosition.amount0.toString(),
-          amountToken1: basePosition.amount1.toString(),
-          positionTvl: basePositionTvl,
-        },
+        // {
+        //   tickLower: baseLower,
+        //   tickUpper: baseUpper,
+        //   priceLower: priceAtBaseLower,
+        //   priceUpper: priceAtBaseUpper,
+        //   liquidity: basePosition.liquidity.toString(),
+        //   amountToken0: basePosition.amount0.toString(),
+        //   amountToken1: basePosition.amount1.toString(),
+        //   positionTvl: basePositionTvl,
+        // },
         {
           tickLower: limitLower,
           tickUpper: limitUpper,
