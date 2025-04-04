@@ -14,7 +14,7 @@ export type Config = { [key in SupportedDex]?: SupportedDexConfig };
 export const addressConfig: Record<SupportedChainId, Config> = {
   [SupportedChainId.Base]: {
     [SupportedDex.CLAMM]: {
-      depositGuardAddress: '0xd97c576eCd678cBAd57d112d93a1Ce76C880233E',
+      depositGuardAddress: '0x57F583b82624680bC57446f486cBd69B56Beb037',
       vaultDeployerAddress: '0x00009cc27c811a3e0FdD2Fd737afCc721B67eE8e',
       vaults: vaultAddresses.Base.CLAMM,
     },
