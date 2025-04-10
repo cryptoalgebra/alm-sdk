@@ -33,7 +33,7 @@ export function vaultByTokensQuery() {
 export const vaultByPoolQuery = gql`
   query ($poolAddress: String!) {
     almVaults(where: { pool: $poolAddress }) {
-      vault
+      id
     }
   }
 `;
