@@ -114,10 +114,10 @@ export async function sendUserBalancesQueryRequest(
   url: string,
   accountAddress: string,
   query: string,
-): Promise<UserBalancesQueryData['user']> {
+): Promise<UserBalancesQueryData['vaultShares']> {
   return request<UserBalancesQueryData, { accountAddress: string }>(url, query, {
     accountAddress: accountAddress.toLowerCase(),
-  }).then(({ user }) => user);
+  }).then(({ vaultShares }) => vaultShares);
 }
 function storeResult(key: string, result: any) {
   const cacheTtl =
@@ -148,12 +148,12 @@ export async function getAllUserBalances(
   raw?: true,
 ) {
   const { chainId } = await getChainByProvider(jsonProvider);
-  const { publishedUrl, url, version } = getGraphUrls(chainId, dex, true);
+  const { publishedUrl, url } = getGraphUrls(chainId, dex, true);
 
   let shares: UserBalanceInVault[];
   const key = `${chainId + accountAddress}-balances`;
   if (!Object.prototype.hasOwnProperty.call(promises, key)) {
-    const strUserBalancesQuery = userBalancesQuery(version);
+    const strUserBalancesQuery = userBalancesQuery();
     try {
       if (publishedUrl) {
         const result = await sendUserBalancesQueryRequest(publishedUrl, accountAddress, strUserBalancesQuery);
@@ -276,11 +276,11 @@ export async function getAllUserAmounts(
   raw?: true,
 ) {
   const { chainId } = await getChainByProvider(jsonProvider);
-  const { publishedUrl, url, version } = getGraphUrls(chainId, dex, true);
+  const { publishedUrl, url } = getGraphUrls(chainId, dex, true);
 
   const key = `${chainId + accountAddress}-all-user-amounts`;
   if (!Object.prototype.hasOwnProperty.call(promises, key)) {
-    const strUserBalancesQuery = userBalancesQuery(version);
+    const strUserBalancesQuery = userBalancesQuery();
     try {
       if (publishedUrl) {
         const result = await sendUserBalancesQueryRequest(publishedUrl, accountAddress, strUserBalancesQuery);

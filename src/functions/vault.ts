@@ -7,10 +7,10 @@ import { VaultQueryData, VaultsByPoolQueryData, VaultsByTokensQueryData } from '
 import { getAlgebraVaultContract } from '../contracts';
 import { vaultByPoolQuery, vaultByTokensQuery, vaultQueryAlgebra } from '../graphql/queries';
 import getGraphUrls from '../utils/getGraphUrls';
-import { addressConfig } from '../config/addresses';
 import cache from '../utils/cache';
+import { sendFeeAprQueryRequest } from '../graphql/functions';
 // eslint-disable-next-line import/no-cycle
-import { getLpApr } from './calculateApr';
+import { getVaultTvl } from './priceFromPool';
 
 function normalizeVaultData(vaultData: any): AlgebraVault {
   // If it's a v2 response (has token0/token1)
@@ -60,7 +60,7 @@ async function getVaultInfoFromContract(vaultAddress: string, jsonProvider: Json
 async function sendVaultQueryRequest(url: string, vaultAddress: string, query: string): Promise<AlgebraVault> {
   return request<VaultQueryData, { vaultAddress: string }>(url, query, {
     vaultAddress: vaultAddress.toLowerCase(),
-  }).then(({ ichiVault }) => ichiVault);
+  }).then(({ almVault }) => almVault);
 }
 async function sendVaultsByTokensRequest(
   url: string,
@@ -71,16 +71,12 @@ async function sendVaultsByTokensRequest(
   return request<VaultsByTokensQueryData, { addressTokenA: string; addressTokenB: string }>(url, query, {
     addressTokenA: token1,
     addressTokenB: token2,
-  }).then(({ ichiVaults }) => ichiVaults);
+  }).then(({ almVaults }) => almVaults);
 }
 async function sendVaultsByPoolQueryRequest(url: string, poolAddress: string, query: string): Promise<string[]> {
   return request<VaultsByPoolQueryData, { poolAddress: string }>(url, query, {
     poolAddress: poolAddress.toLowerCase(),
-  }).then(({ deployICHIVaults }) => deployICHIVaults);
-}
-
-function noHoldersCount(dex: SupportedDex): boolean {
-  return dex === SupportedDex.Henjin;
+  }).then(({ almVault }) => almVault);
 }
 
 export async function getAlgebraVaultInfo(
@@ -96,10 +92,8 @@ export async function getAlgebraVaultInfo(
     return cachedData as AlgebraVault;
   }
 
-  const includeHoldersCount = !noHoldersCount(dex);
-
-  const { url, publishedUrl, version } = getGraphUrls(chainId, dex);
-  const thisQuery = vaultQueryAlgebra(includeHoldersCount, version);
+  const { url, publishedUrl } = getGraphUrls(chainId, dex);
+  const thisQuery = vaultQueryAlgebra();
   if (url === 'none' && jsonProvider) {
     const result = await getVaultInfoFromContract(vaultAddress, jsonProvider);
     cache.set(key, result, ttl);
@@ -158,19 +152,16 @@ export async function getExtendedAlgebraVault(
 
   try {
     const vault = await getAlgebraVaultInfo(chainId, dex, vaultAddress, jsonProvider);
+    const isInv = vault.allowTokenB;
 
-    const { aprs, totalAmounts } = await getLpApr(
-      vaultAddress,
-      jsonProvider,
-      dex,
-      vault,
-      token0Decimals,
-      token1Decimals,
-    );
+    const { totalAmounts } = await getVaultTvl(vault, jsonProvider, isInv, token0Decimals, token1Decimals);
+
+    const { url } = getGraphUrls(chainId, dex);
+    const { almVault } = await sendFeeAprQueryRequest(url, vaultAddress);
 
     const result = {
       ...vault,
-      apr: aprs[2]?.apr || 0,
+      apr: almVault?.feeApr_1d || 0,
       amount0: totalAmounts[0].toBigInt(),
       amount1: totalAmounts[1].toBigInt(),
     };
@@ -187,17 +178,17 @@ async function getVaultsByTokensAB(
   dex: SupportedDex,
   tokenA: string,
   tokenB: string,
-): Promise<VaultsByTokensQueryData['ichiVaults']> {
+): Promise<VaultsByTokensQueryData['almVaults']> {
   const key = `vaultByTokens-${chainId}-${tokenA}-${tokenB}`;
   const cachedData = cache.get(key);
   if (cachedData) {
-    return cachedData as VaultsByTokensQueryData['ichiVaults'];
+    return cachedData as VaultsByTokensQueryData['almVaults'];
   }
 
   const ttl = 3600000;
-  const { url, publishedUrl, version } = getGraphUrls(chainId, dex, true);
+  const { url, publishedUrl } = getGraphUrls(chainId, dex, true);
 
-  const strVaultByTokensQuery = vaultByTokensQuery(version);
+  const strVaultByTokensQuery = vaultByTokensQuery();
 
   try {
     if (publishedUrl) {
@@ -227,7 +218,7 @@ export async function getVaultsByTokens(
   dex: SupportedDex,
   depositTokenAddress: string,
   pairedTokenAddress: string,
-): Promise<VaultsByTokensQueryData['ichiVaults']> {
+): Promise<VaultsByTokensQueryData['almVaults']> {
   const arrVaults1 = (await getVaultsByTokensAB(chainId, dex, depositTokenAddress, pairedTokenAddress)).filter(
     (v) => v.allowTokenA,
   );
@@ -243,14 +234,11 @@ export async function getVaultsByPool(
   poolAddress: string,
   chainId: SupportedChainId,
   dex: SupportedDex,
-): Promise<VaultsByPoolQueryData['deployICHIVaults']> {
-  const vaultsByPool = addressConfig[chainId][dex]?.vaults[poolAddress.toLowerCase()];
-  if (vaultsByPool) return vaultsByPool;
-
+): Promise<VaultsByPoolQueryData['almVault']> {
   const key = `pool-${chainId}-${poolAddress}`;
   const cachedData = cache.get(key);
   if (cachedData) {
-    return cachedData as VaultsByPoolQueryData['deployICHIVaults'];
+    return cachedData as VaultsByPoolQueryData['almVault'];
   }
   const { url, publishedUrl } = getGraphUrls(chainId, dex, true);
   const ttl = 3600000;

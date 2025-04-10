@@ -7,8 +7,6 @@ type PartialRecord<K extends keyof any, T> = {
 type GraphQL = {
   url: string;
   publishedUrl: string;
-  supportsCollectFees: boolean;
-  version?: number; // version 2 uses token0/1 instead of tokenA/B, supports vault fee APRs
 };
 type dexGraph = PartialRecord<SupportedDex, GraphQL>;
 
@@ -16,16 +14,14 @@ type dexGraph = PartialRecord<SupportedDex, GraphQL>;
 export const graphUrls: Record<SupportedChainId, dexGraph> = {
   [SupportedChainId.Base]: {
     [SupportedDex.CLAMM]: {
-      url: 'none',
-      publishedUrl: '',
-      supportsCollectFees: true,
+      url: 'https://api.studio.thegraph.com/query/50593/clamm-alm/version/latest',
+      publishedUrl: 'https://api.studio.thegraph.com/query/50593/clamm-alm/version/latest',
     },
   },
   [SupportedChainId.BaseSepolia]: {
     [SupportedDex.CLAMM]: {
-      url: 'none',
-      publishedUrl: '',
-      supportsCollectFees: true,
+      url: 'https://api.studio.thegraph.com/query/50593/base-testnet-alm/version/latest',
+      publishedUrl: 'https://api.studio.thegraph.com/query/50593/base-testnet-alm/version/latest',
     },
   },
 };

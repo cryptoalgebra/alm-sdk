@@ -2,14 +2,14 @@
 import { AlgebraVault, Fees, VaultTransactionEvent, UserBalances, FeeAprData } from '..';
 
 export interface VaultQueryData {
-  ichiVault: AlgebraVault;
+  almVault: AlgebraVault;
 }
 
 export interface VaultsByTokensQueryData {
-  ichiVaults: AlgebraVault[];
+  almVaults: AlgebraVault[];
 }
 export interface VaultsByPoolQueryData {
-  deployICHIVaults: string[];
+  almVault: string[];
 }
 
 export interface RebalancesQueryData {
@@ -24,10 +24,11 @@ export interface VaultDepositsQueryData {
 export interface VaultWithdrawsQueryData {
   vaultWithdraws: VaultTransactionEvent[];
 }
+
 export interface UserBalancesQueryData {
-  user: UserBalances;
+  vaultShares: UserBalances;
 }
 
 export interface FeeAprQueryResponse {
-  ichiVault: FeeAprData | null;
+  almVault: FeeAprData | null;
 }

@@ -1,62 +1,30 @@
 // eslint-disable-next-line import/no-unresolved
 import { gql } from 'graphql-request';
 
-export function vaultQueryAlgebra(includeHoldersCount: boolean, version: number = 1) {
-  // Version 2 uses token0/token1 instead of tokenA/tokenB
-  if (version === 2) {
-    return gql`
-      query ($vaultAddress: String!) {
-        ichiVault(id: $vaultAddress) {
-          id
-          token0
-          token1
-          allowToken0
-          allowToken1
-          ${includeHoldersCount ? 'holdersCount' : ''}
-        }
-      }
-    `;
-  }
-
-  // Default to version 1
+export function vaultQueryAlgebra() {
   return gql`
     query ($vaultAddress: String!) {
-      ichiVault(id: $vaultAddress) {
+      almVault(id: $vaultAddress) {
         id
-        tokenA
-        tokenB
-        allowTokenA
-        allowTokenB
-        ${includeHoldersCount ? 'holdersCount' : ''}
+        token0
+        token1
+        allowToken0
+        allowToken1
+        holdersCount
       }
     }
   `;
 }
 
-export function vaultByTokensQuery(version: number = 1) {
-  // Version 2 uses token0/token1 instead of tokenA/tokenB
-  if (version === 2) {
-    return gql`
-      query ($addressTokenA: String!, $addressTokenB: String!) {
-        ichiVaults(where: { token0: $addressTokenA, token1: $addressTokenB }) {
-          id
-          token0
-          token1
-          allowToken0
-          allowToken1
-        }
-      }
-    `;
-  }
-
+export function vaultByTokensQuery() {
   return gql`
     query ($addressTokenA: String!, $addressTokenB: String!) {
-      ichiVaults(where: { tokenA: $addressTokenA, tokenB: $addressTokenB }) {
+      almVaults(where: { token0: $addressTokenA, token1: $addressTokenB }) {
         id
-        tokenA
-        tokenB
-        allowTokenA
-        allowTokenB
+        token0
+        token1
+        allowToken0
+        allowToken1
       }
     }
   `;
@@ -64,8 +32,28 @@ export function vaultByTokensQuery(version: number = 1) {
 
 export const vaultByPoolQuery = gql`
   query ($poolAddress: String!) {
-    deployICHIVaults(where: { pool: $poolAddress }) {
+    almVaults(where: { pool: $poolAddress }) {
       vault
+    }
+  }
+`;
+
+export const allVaultsQuery = gql`
+  query {
+    almVaults {
+      pool
+      id
+      token0
+      token1
+      allowToken0
+      allowToken1
+      totalSupply
+      totalAmount0
+      totalAmount1
+      feeApr_1d
+      feeApr_30d
+      feeApr_3d
+      feeApr_7d
     }
   }
 `;
@@ -191,34 +179,16 @@ export const allEventsQuery = (page: number) => gql`
   }
 `;
 
-export function userBalancesQuery(version: number = 1) {
-  if (version === 2) {
-    return gql`
-      query ($accountAddress: String!) {
-        user(id: $accountAddress) {
-          vaultShares {
-            vault {
-              id
-              token0
-              token1
-            }
-            vaultShareBalance
-          }
-        }
-      }
-    `;
-  }
+export function userBalancesQuery() {
   return gql`
     query ($accountAddress: String!) {
-      user(id: $accountAddress) {
-        vaultShares {
-          vault {
-            id
-            tokenA
-            tokenB
-          }
-          vaultShareBalance
+      vaultShares(where: { user: $accountAddress }) {
+        vault {
+          id
+          token0
+          token1
         }
+        vaultShareBalance
       }
     }
   `;
@@ -226,7 +196,7 @@ export function userBalancesQuery(version: number = 1) {
 
 export const feeAprQuery = gql`
   query ($vaultAddress: String!) {
-    ichiVault(id: $vaultAddress) {
+    almVault(id: $vaultAddress) {
       feeApr_1d
       feeApr_3d
       feeApr_7d

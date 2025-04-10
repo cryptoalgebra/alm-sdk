@@ -12,7 +12,6 @@ export enum SupportedChainId {
 }
 
 export enum SupportedDex {
-  Henjin = 'Henjin',
   CLAMM = 'CLAMM',
 }
 

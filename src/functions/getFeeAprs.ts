@@ -34,7 +34,7 @@ export async function getFeeAprs(
 
   // Check if the subgraph is version 2
   const dexConfig = graphUrls[chainId]?.[dex];
-  if (!dexConfig || dexConfig.version !== 2) {
+  if (!dexConfig) {
     console.error(`This function is not supported on chain ${chainId} and dex ${dex}:`);
     return null;
   }
@@ -61,15 +61,15 @@ export async function getFeeAprs(
       }
     }
 
-    if (!result?.ichiVault) {
+    if (!result?.almVault) {
       return null;
     }
 
     const feeAprData: FeeAprData = {
-      feeApr_1d: result.ichiVault.feeApr_1d ? result.ichiVault.feeApr_1d : null,
-      feeApr_3d: result.ichiVault.feeApr_3d ? result.ichiVault.feeApr_3d : null,
-      feeApr_7d: result.ichiVault.feeApr_7d ? result.ichiVault.feeApr_7d : null,
-      feeApr_30d: result.ichiVault.feeApr_30d ? result.ichiVault.feeApr_30d : null,
+      feeApr_1d: result.almVault.feeApr_1d ? result.almVault.feeApr_1d : null,
+      feeApr_3d: result.almVault.feeApr_3d ? result.almVault.feeApr_3d : null,
+      feeApr_7d: result.almVault.feeApr_7d ? result.almVault.feeApr_7d : null,
+      feeApr_30d: result.almVault.feeApr_30d ? result.almVault.feeApr_30d : null,
     };
 
     cache.set(key, feeAprData, ttl);

@@ -4,8 +4,6 @@
 /* eslint-disable import/no-cycle */
 // eslint-disable-next-line import/no-unresolved
 import { SupportedDex, SupportedChainId, Fees, VaultTransactionEvent, VaultState } from '../types';
-// eslint-disable import/no-cycle
-import { graphUrls } from '../graphql/constants';
 import {
   allEventsQuery,
   rebalancesQuery,
@@ -44,8 +42,6 @@ export async function _getAllEvents(
   const startTimestamp = days
     ? parseInt(((currTimestamp - daysToMilliseconds(days)) / 1000).toString()).toString()
     : '0';
-
-  const supportsCollectFees = graphUrls[chainId as SupportedChainId]![dex]?.supportsCollectFees;
   const query = allEventsQuery;
 
   const allEvents = [] as Fees[];
@@ -72,13 +68,13 @@ export async function _getAllEvents(
     }
     if (result) {
       allEvents.push(...result.vaultRebalances);
-      if (supportsCollectFees) allEvents.push(...result.vaultCollectFees);
+      allEvents.push(...result.vaultCollectFees);
       allEvents.push(...result.vaultDeposits);
       allEvents.push(...result.vaultWithdraws);
       page += 1;
       if (
         result.vaultRebalances.length < 1000 &&
-        (result.vaultCollectFees?.length < 1000 || !supportsCollectFees) &&
+        result.vaultCollectFees?.length < 1000 &&
         result.vaultDeposits.length < 1000 &&
         result.vaultWithdraws.length < 1000
       ) {
@@ -166,13 +162,6 @@ export async function _getFeesCollectedEvents(
 
   const ttl = 120000;
   const { publishedUrl, url } = getGraphUrls(chainId, dex, true);
-
-  const supportsCollectFees = graphUrls[chainId as SupportedChainId]![dex]?.supportsCollectFees;
-  if (!supportsCollectFees) {
-    const result = [] as unknown as Promise<Fees[]>;
-    cache.set(key, result, 24 * 60 * 60 * 1000);
-    return result;
-  }
 
   const currTimestamp = Date.now();
   const startTimestamp = days
