@@ -76,7 +76,7 @@ async function sendVaultsByTokensRequest(
 async function sendVaultsByPoolQueryRequest(url: string, poolAddress: string, query: string): Promise<string[]> {
   return request<VaultsByPoolQueryData, { poolAddress: string }>(url, query, {
     poolAddress: poolAddress.toLowerCase(),
-  }).then(({ almVault }) => almVault);
+  }).then(({ almVaults }) => almVaults);
 }
 
 export async function getAlgebraVaultInfo(
@@ -234,11 +234,11 @@ export async function getVaultsByPool(
   poolAddress: string,
   chainId: SupportedChainId,
   dex: SupportedDex,
-): Promise<VaultsByPoolQueryData['almVault']> {
+): Promise<VaultsByPoolQueryData['almVaults']> {
   const key = `pool-${chainId}-${poolAddress}`;
   const cachedData = cache.get(key);
   if (cachedData) {
-    return cachedData as VaultsByPoolQueryData['almVault'];
+    return cachedData as VaultsByPoolQueryData['almVaults'];
   }
   const { url, publishedUrl } = getGraphUrls(chainId, dex, true);
   const ttl = 3600000;

@@ -9,7 +9,7 @@ export interface VaultsByTokensQueryData {
   almVaults: AlgebraVault[];
 }
 export interface VaultsByPoolQueryData {
-  almVault: string[];
+  almVaults: string[];
 }
 
 export interface RebalancesQueryData {
