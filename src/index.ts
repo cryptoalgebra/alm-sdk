@@ -14,3 +14,4 @@ export * from './functions/vaultPositions';
 export * from './functions/getFeeAprs';
 export * from './types/index';
 export * from './config';
+export * from './functions/calculatePnl';

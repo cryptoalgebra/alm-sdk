@@ -1,6 +1,6 @@
 {
   "name": "@skdamn/alm-sdk",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "The Algebra ALM SDK",
   "main": "dist/src/index.cjs.js",
   "module": "dist/src/index.esm.js",
