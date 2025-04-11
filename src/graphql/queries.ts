@@ -92,39 +92,79 @@ export const vaultCollectFeesQuery = (page: number) => gql`
   }
 `;
 
-export const vaultDepositsQuery = (page: number) => gql`
-  query ($vaultAddress: String!, $createdAtTimestamp_gt: String!) {
-    vaultDeposits(first: 1000, skip: ${
-      page * 1000
-    }, where: { vault: $vaultAddress, createdAtTimestamp_gt: $createdAtTimestamp_gt }) {
-      vault
-      createdAtTimestamp
-      totalAmount0
-      totalAmount1
-      totalAmount0BeforeEvent
-      totalAmount1BeforeEvent
-      sqrtPrice
-      totalSupply
-    }
-  }
-`;
+export const vaultDepositsQuery = (page: number, createdAtTimestamp?: string, userAddress?: string) => {
+  const filters = [`vault: $vaultAddress`];
 
-export const vaultWithdrawsQuery = (page: number) => gql`
-  query ($vaultAddress: String!, $createdAtTimestamp_gt: String!) {
-    vaultWithdraws(first: 1000, skip: ${
-      page * 1000
-    }, where: { vault: $vaultAddress, createdAtTimestamp_gt: $createdAtTimestamp_gt }) {
-      createdAtTimestamp
-      totalAmount0
-      totalAmount1
-      totalAmount0BeforeEvent
-      totalAmount1BeforeEvent
-      vault
-      sqrtPrice
-      totalSupply
-    }
+  if (createdAtTimestamp) {
+    filters.push(`createdAtTimestamp_gt: $createdAtTimestamp_gt`);
   }
-`;
+
+  if (userAddress) {
+    filters.push(`to: $userAddress`);
+  }
+
+  return gql`
+    query (
+      $vaultAddress: String!
+      ${createdAtTimestamp ? ', $createdAtTimestamp_gt: String' : ''}
+      ${userAddress ? ', $userAddress: String' : ''}
+    ) {
+      vaultDeposits(
+        first: 1000
+        skip: ${page * 1000}
+        where: { ${filters.join(', ')} }
+      ) {
+        vault
+        createdAtTimestamp
+        totalAmount0
+        totalAmount1
+        totalAmount0BeforeEvent
+        totalAmount1BeforeEvent
+        sqrtPrice
+        totalSupply
+        amount0
+        amount1
+      }
+    }
+  `;
+};
+
+export const vaultWithdrawsQuery = (page: number, createdAtTimestamp?: string, userAddress?: string) => {
+  const filters = [`vault: $vaultAddress`];
+
+  if (createdAtTimestamp) {
+    filters.push(`createdAtTimestamp_gt: $createdAtTimestamp_gt`);
+  }
+
+  if (userAddress) {
+    filters.push(`to: $userAddress`);
+  }
+
+  return gql`
+    query (
+      $vaultAddress: String!
+      ${createdAtTimestamp ? ', $createdAtTimestamp_gt: String' : ''}
+      ${userAddress ? ', $userAddress: String' : ''}
+    ) {
+      vaultWithdraws(
+        first: 1000
+        skip: ${page * 1000}
+        where: { ${filters.join(', ')} }
+      ) {
+        createdAtTimestamp
+        totalAmount0
+        totalAmount1
+        totalAmount0BeforeEvent
+        totalAmount1BeforeEvent
+        vault
+        sqrtPrice
+        totalSupply
+        amount0
+        amount1
+      }
+    }
+  `;
+};
 
 export const allEventsQuery = (page: number) => gql`
   query ($vaultAddress: String!, $createdAtTimestamp_gt: String!) {

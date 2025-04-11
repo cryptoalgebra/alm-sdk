@@ -238,7 +238,7 @@ export async function _getDeposits(
     let result;
     try {
       if (publishedUrl) {
-        result = await sendDepositsQueryRequest(publishedUrl, vaultAddress, startTimestamp, vaultDepositsQuery(page));
+        result = await sendDepositsQueryRequest(publishedUrl, vaultAddress, vaultDepositsQuery(page), startTimestamp);
       } else {
         throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
       }
@@ -247,7 +247,7 @@ export async function _getDeposits(
         console.error('Request to published graph URL failed:', error);
       }
       try {
-        result = await sendDepositsQueryRequest(url, vaultAddress, startTimestamp, vaultDepositsQuery(page));
+        result = await sendDepositsQueryRequest(url, vaultAddress, vaultDepositsQuery(page), startTimestamp);
       } catch (error2) {
         console.error('Request to public graph URL failed:', error2);
         throw new Error(`Could not get deposits for vault ${vaultAddress} on chain ${chainId}`);
@@ -296,7 +296,7 @@ export async function _getWithdraws(
     let result;
     try {
       if (publishedUrl) {
-        result = await sendWithdrawsQueryRequest(publishedUrl, vaultAddress, startTimestamp, vaultWithdrawsQuery(page));
+        result = await sendWithdrawsQueryRequest(publishedUrl, vaultAddress, vaultWithdrawsQuery(page), startTimestamp);
       } else {
         throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
       }
@@ -305,7 +305,7 @@ export async function _getWithdraws(
         console.error('Request to published graph URL failed:', error);
       }
       try {
-        result = await sendWithdrawsQueryRequest(url, vaultAddress, startTimestamp, vaultWithdrawsQuery(page));
+        result = await sendWithdrawsQueryRequest(url, vaultAddress, vaultWithdrawsQuery(page), startTimestamp);
       } catch (error2) {
         console.error('Request to public graph URL failed:', error2);
         throw new Error(`Could not get withdraws for vault ${vaultAddress} on chain ${chainId}`);

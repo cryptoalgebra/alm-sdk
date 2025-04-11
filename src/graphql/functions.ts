@@ -50,24 +50,34 @@ export async function sendCollectFeesQueryRequest(
 export async function sendDepositsQueryRequest(
   url: string,
   vaultAddress: string,
-  createdAtTimestamp_gt: string,
   query: string,
+  createdAtTimestamp_gt?: string,
+  accountAddress?: string,
 ): Promise<VaultDepositsQueryData['vaultDeposits']> {
-  return request<VaultDepositsQueryData, { vaultAddress: string; createdAtTimestamp_gt: string }>(url, query, {
+  return request<
+    VaultDepositsQueryData,
+    { vaultAddress: string; createdAtTimestamp_gt?: string; userAddress?: string }
+  >(url, query, {
     vaultAddress,
     createdAtTimestamp_gt,
+    userAddress: accountAddress,
   }).then(({ vaultDeposits }) => vaultDeposits);
 }
 
 export async function sendWithdrawsQueryRequest(
   url: string,
   vaultAddress: string,
-  createdAtTimestamp_gt: string,
   query: string,
+  createdAtTimestamp_gt?: string,
+  accountAddress?: string,
 ): Promise<VaultWithdrawsQueryData['vaultWithdraws']> {
-  return request<VaultWithdrawsQueryData, { vaultAddress: string; createdAtTimestamp_gt: string }>(url, query, {
+  return request<
+    VaultWithdrawsQueryData,
+    { vaultAddress: string; createdAtTimestamp_gt?: string; userAddress?: string }
+  >(url, query, {
     vaultAddress,
     createdAtTimestamp_gt,
+    userAddress: accountAddress,
   }).then(({ vaultWithdraws }) => vaultWithdraws);
 }
 

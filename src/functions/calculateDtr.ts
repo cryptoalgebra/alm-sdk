@@ -3,6 +3,7 @@
 
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from '@ethersproject/bignumber';
+import { parseUnits } from '@ethersproject/units';
 import { AverageDepositTokenRatio, DepositTokenRatio, SupportedDex, VaultState, VaultTransactionEvent } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
@@ -14,6 +15,35 @@ import getPrice from '../utils/getPrice';
 import { getTotalAmountsAtFeeCollectionEvent } from './calculateFees';
 import { getCurrentDtr } from './priceFromPool';
 import { _getDeposits, _getFeesCollectedEvents, _getRebalances, _getWithdraws } from './_vaultEvents';
+import truncateToDecimals from '../utils/truncateToDecimals';
+
+export function getAmountsInDepositToken(
+  sqrtPrice: BigNumber,
+  amount0: BigNumber,
+  amount1: BigNumber,
+  token0Decimals: number,
+  token1Decimals: number,
+  depositToken: 0 | 1,
+): BigNumber {
+  const isVaultInverted = depositToken === 1;
+
+  const depositTokenDecimals = isVaultInverted ? token1Decimals : token0Decimals;
+  const scarceTokenDecimals = isVaultInverted ? token0Decimals : token1Decimals;
+  const price0 = !isVaultInverted
+    ? 1
+    : getPrice(isVaultInverted, BigNumber.from(sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
+  const price1 = isVaultInverted
+    ? 1
+    : getPrice(isVaultInverted, BigNumber.from(sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
+
+  const amountInDepositToken =
+    Number(formatBigInt(amount0, token0Decimals)) * price0 + Number(formatBigInt(amount1, token1Decimals)) * price1;
+
+  const amountStr = truncateToDecimals(amountInDepositToken, depositTokenDecimals);
+  const amountInDepositTokenBN = parseUnits(amountStr, depositTokenDecimals);
+
+  return amountInDepositTokenBN;
+}
 
 // total amounts at deposit or withdrawal in deposit tokens
 function getTotalAmountsAtTransactionEvent(

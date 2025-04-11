@@ -75,6 +75,8 @@ export interface Fees extends VaultState {
 }
 
 export interface VaultTransactionEvent extends VaultState {
+  amount0: string;
+  amount1: string;
   totalAmount0: string;
   totalAmount1: string;
   totalAmount0BeforeEvent: string;
