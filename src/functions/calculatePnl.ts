@@ -79,12 +79,11 @@ export async function calculateUserDepositTokenPNL(
       vault.allowTokenA ? 0 : 1,
     );
 
-    const pnlBN = currentAmount.sub(totalDepositAmountBN).sub(totalWithdrawAmountBN);
-
-    const formattedCurrentAmount = formatBigInt(currentAmount, vault.allowTokenA ? decimals0 : decimals1);
+    const pnlBN = totalWithdrawAmountBN.add(currentAmount).sub(totalDepositAmountBN);
 
     const pnl = formatBigInt(pnlBN, vault.allowTokenA ? decimals0 : decimals1);
-    const roi = Number((Number(pnl) / Number(formattedCurrentAmount)) * 100);
+    const roi =
+      (Number(pnl) / Number(formatBigInt(totalDepositAmountBN, vault.allowTokenA ? decimals0 : decimals1))) * 100;
 
     const result = {
       totalDepositAmountBN,
