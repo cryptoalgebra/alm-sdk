@@ -912,17 +912,6 @@
   resolved "https://registry.npmjs.org/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cryptoalgebra/alm-vault@^1.2.1-patch1":
-  version "1.2.1-patch1"
-  resolved "https://registry.npmjs.org/@cryptoalgebra/alm-vault/-/alm-vault-1.2.1-patch1.tgz"
-  integrity sha512-ofBlH4CqsvgED3pMfGxrOnP+uyJ86Z+6GzE5uEax5RyRqnflmQElUvdxcogb6muNNvMTOAuZ3QDMIaCrclvmIg==
-  dependencies:
-    "@cryptoalgebra/integral-base-plugin" "^1.2.1"
-    "@cryptoalgebra/integral-core" "^1.2.1"
-    "@cryptoalgebra/integral-periphery" "^1.2.1"
-    "@openzeppelin/contracts" "4.9.3"
-    bignumber.js "^9.1.2"
-
 "@cryptoalgebra/integral-base-plugin@^1.2.1":
   version "1.2.1"
   resolved "https://registry.npmjs.org/@cryptoalgebra/integral-base-plugin/-/integral-base-plugin-1.2.1.tgz"

@@ -5,6 +5,7 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from 'ethers';
 // eslint-disable-next-line import/no-unresolved
 import { request } from 'graphql-request';
+import { formatUnits } from '@ethersproject/units';
 import { getAlgebraVaultContract } from '../contracts';
 import {
   SupportedDex,
@@ -25,7 +26,6 @@ import { UserBalancesQueryData } from '../types/vaultQueryData';
 import { userBalancesQuery } from '../graphql/queries';
 import parseBigInt from '../utils/parseBigInt';
 import getGraphUrls from '../utils/getGraphUrls';
-import { _getTotalAmounts, _getTotalSupply, getTokenDecimals } from './_totalBalances';
 import {
   decodeDecimalsResult,
   decodeTotalAmountsResult,
@@ -35,6 +35,7 @@ import {
   encodeTotalSupplyCall,
   multicall,
 } from '../utils/multicallUtils';
+import { getTotalAmounts, getTotalSupply } from './totalBalances';
 
 const promises: Record<string, Promise<any>> = {};
 
@@ -196,6 +197,9 @@ export async function getUserAmounts(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   dex: SupportedDex,
+  token0Decimals: number,
+  token1Decimals: number,
+  raw: false,
 ): Promise<UserAmounts>;
 
 export async function getUserAmounts(
@@ -203,6 +207,8 @@ export async function getUserAmounts(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   dex: SupportedDex,
+  token0Decimals: number,
+  token1Decimals: number,
   raw: true,
 ): Promise<UserAmountsBN>;
 
@@ -211,48 +217,34 @@ export async function getUserAmounts(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   dex: SupportedDex,
-  raw?: true,
+  token0Decimals: number,
+  token1Decimals: number,
+  raw: boolean,
 ) {
-  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
+  const [totalAmounts, totalSupply, shares] = await Promise.all([
+    getTotalAmounts(vaultAddress, jsonProvider, dex, true, token0Decimals, token1Decimals),
+    getTotalSupply(vaultAddress, jsonProvider, dex),
+    getUserBalance(accountAddress, vaultAddress, jsonProvider, dex),
+  ]);
 
-  const token0Decimals = await getTokenDecimals(vault.tokenA, jsonProvider, chainId);
-  const token1Decimals = await getTokenDecimals(vault.tokenB, jsonProvider, chainId);
+  const userAmountsBN: UserAmountsBN = [
+    BigNumber.from(((Number(shares) * Number(totalAmounts[0].toBigInt())) / Number(totalSupply)).toFixed(0)),
+    BigNumber.from(((Number(shares) * Number(totalAmounts[1].toBigInt())) / Number(totalSupply)).toFixed(0)),
+    shares,
+  ];
 
-  const totalAmountsBN = await _getTotalAmounts(vault, jsonProvider, true, token0Decimals, token1Decimals);
-  const totalSupplyBN = await _getTotalSupply(vaultAddress, jsonProvider, true);
-  const userBalanceBN = await _getUserBalance(accountAddress, vaultAddress, jsonProvider, true);
-  if (!totalSupplyBN.isZero()) {
-    const userAmountsBN = {
-      amount0: userBalanceBN.mul(totalAmountsBN[0]).div(totalSupplyBN),
-      amount1: userBalanceBN.mul(totalAmountsBN[1]).div(totalSupplyBN),
-      0: userBalanceBN.mul(totalAmountsBN[0]).div(totalSupplyBN),
-      1: userBalanceBN.mul(totalAmountsBN[1]).div(totalSupplyBN),
-    } as UserAmountsBN;
-    if (!raw) {
-      const userAmounts = {
-        amount0: formatBigInt(userAmountsBN.amount0, token0Decimals),
-        amount1: formatBigInt(userAmountsBN.amount1, token1Decimals),
-        0: formatBigInt(userAmountsBN.amount0, token0Decimals),
-        1: formatBigInt(userAmountsBN.amount1, token1Decimals),
-      } as UserAmounts;
-      return userAmounts;
-    } else {
-      return userAmountsBN;
-    }
-  } else if (!raw) {
-    return {
-      amount0: '0',
-      amount1: '0',
-      0: '0',
-      1: '0',
-    } as UserAmounts;
+  userAmountsBN[0].toBigInt();
+
+  const formattedUserAmounts: UserAmounts = [
+    formatUnits(userAmountsBN[0], token0Decimals),
+    formatUnits(userAmountsBN[1], token1Decimals),
+    shares,
+  ];
+
+  if (raw) {
+    return userAmountsBN as UserAmountsBN;
   } else {
-    return {
-      amount0: BigNumber.from(0),
-      amount1: BigNumber.from(0),
-      0: BigNumber.from(0),
-      1: BigNumber.from(0),
-    } as UserAmountsBN;
+    return formattedUserAmounts as UserAmounts;
   }
 }
 
@@ -345,20 +337,10 @@ export async function getAllUserAmounts(
         const amount1 = userBalance.mul(totalAmounts.total1).div(totalSupply);
 
         if (!raw) {
-          const userAmounts = {
-            amount0: formatBigInt(amount0, token0Decimals),
-            amount1: formatBigInt(amount1, token1Decimals),
-            0: formatBigInt(amount0, token0Decimals),
-            1: formatBigInt(amount1, token1Decimals),
-          } as UserAmounts;
+          const userAmounts = [formatBigInt(amount0, token0Decimals), formatBigInt(amount1, token1Decimals)];
           return { vaultAddress: share.vault.id, userAmounts };
         } else {
-          const userAmountsBN = {
-            amount0,
-            amount1,
-            0: amount0,
-            1: amount1,
-          } as UserAmountsBN;
+          const userAmountsBN = [amount0, amount1];
           return { vaultAddress: share.vault.id, userAmounts: userAmountsBN };
         }
       } else {
@@ -371,12 +353,7 @@ export async function getAllUserAmounts(
                 0: '0',
                 1: '0',
               }
-            : {
-                amount0: BigNumber.from(0),
-                amount1: BigNumber.from(0),
-                0: BigNumber.from(0),
-                1: BigNumber.from(0),
-              },
+            : [BigNumber.from(0), BigNumber.from(0), '0'],
         } as UserAmountsInVault | UserAmountsInVaultBN;
       }
     });

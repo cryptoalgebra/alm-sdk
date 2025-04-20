@@ -18,9 +18,9 @@ export enum SupportedDex {
 export const algebraVaultDecimals = 18;
 
 export type TotalAmountsBN = [BigNumber, BigNumber] & { total0: BigNumber; total1: BigNumber };
-export type UserAmountsBN = [BigNumber, BigNumber] & { amount0: BigNumber; amount1: BigNumber };
-export type TotalAmounts = [string, string] & { total0: string; total1: string };
-export type UserAmounts = [string, string] & { amount0: string; amount1: string };
+export type UserAmountsBN = [BigNumber, BigNumber, string];
+export type TotalAmounts = [string, string, string] & { total0: string; total1: string };
+export type UserAmounts = [string, string, string];
 
 export type UserAmountsInVault = {
   vaultAddress: string;

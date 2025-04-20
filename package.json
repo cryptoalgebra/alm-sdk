@@ -1,7 +1,7 @@
 {
-  "name": "@skdamn/alm-sdk",
-  "version": "0.0.23",
-  "description": "The Algebra ALM SDK",
+  "name": "@cryptoalgebra/alm-sdk",
+  "version": "1.0.0",
+  "description": "Algebra ALM SDK",
   "main": "dist/src/index.cjs.js",
   "module": "dist/src/index.esm.js",
   "types": "dist/src/index.d.ts",
@@ -34,7 +34,6 @@
   "author": "skdamn",
   "license": "MIT",
   "dependencies": {
-    "@cryptoalgebra/alm-vault": "^1.2.1-patch1",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/abstract-signer": "^5.6.2",
     "@ethersproject/address": "^5.6.0",
