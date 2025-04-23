@@ -10,6 +10,6 @@
 
 - Routing through pools with the ALM plugin [CUSTOM_POOL_DEPLOYER_ALM](https://github.com/cryptoalgebra/router-3/blob/7b606c3171c21abfcd8d5e2e02779fbebff1ab32/evm/constants/addresses.ts#L42)
 
-## clamm-ui
+## integral-ui
 
-- Creating pools with the ALM plugin - [CUSTOM_POOL_DEPLOYER_ALM](https://github.com/cryptoalgebra/clamm-ui/blob/ac1a9634d18f3f2d88a6545f8cd144bbea21accd/src/constants/addresses.ts#L64)
+- Creating pools with the ALM plugin - [CUSTOM_POOL_DEPLOYER_ALM](https://github.com/cryptoalgebra/integral-ui/blob/abc096509f2f32be2cda2b6b30fd3151580a8e97/src/constants/addresses.ts#L64)
