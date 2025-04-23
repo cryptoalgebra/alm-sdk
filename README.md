@@ -22,7 +22,7 @@ https://github.com/cryptoalgebra/alm-sdk/blob/main/src/graphql/constants.ts
 https://github.com/cryptoalgebra/alm-sdk/blob/main/redeploy-checklist.md
 
 ## ⚙️ Blockchain Interaction
-This SDK uses ethers.js for blockchain interactions (calls, sending transactions). It is also compatible with viem/wagmi via [Viem/Wagmi Provider conversion](https://github.com/cryptoalgebra/clamm-ui/blob/clamm-base/src/hooks/common/useEthersProvider.ts)
+This SDK uses ethers.js for blockchain interactions (calls, sending transactions). It is also compatible with viem/wagmi via [Viem/Wagmi Provider conversion](https://github.com/cryptoalgebra/integral-ui/blob/integral-1.2-beta/src/hooks/common/useEthersProvider.ts)
 
 ## 📚 Vault GET Methods
 
@@ -169,9 +169,9 @@ if (useNativeToken) {
 ```
 
 ## 🔗 Examples & Integration:
-- [Viem/Wagmi Provider conversion](https://github.com/cryptoalgebra/clamm-ui/blob/clamm-base/src/hooks/common/useEthersProvider.ts)
-- [ALM Vaults data](https://github.com/cryptoalgebra/clamm-ui/blob/clamm-base/src/hooks/alm/useALMVaults.ts)
-- [User Data in Vaults](https://github.com/cryptoalgebra/clamm-ui/blob/clamm-base/src/hooks/alm/useUserALMVaults.ts)
-- [Approve](https://github.com/cryptoalgebra/clamm-ui/blob/59d9813d2e6a5b365df5e54781e96d2faaf92524/src/components/create-position/AddAutomatedLiquidityButton/index.tsx#L38)
-- [Deposit](https://github.com/cryptoalgebra/clamm-ui/blob/59d9813d2e6a5b365df5e54781e96d2faaf92524/src/components/create-position/AddAutomatedLiquidityButton/index.tsx#L54)
-- [Withdraw](https://github.com/cryptoalgebra/clamm-ui/blob/59d9813d2e6a5b365df5e54781e96d2faaf92524/src/components/modals/RemoveALMLiquidityModal/index.tsx#L42)
+- [Viem/Wagmi Provider conversion](https://github.com/cryptoalgebra/integral-ui/blob/integral-1.2-beta/src/hooks/common/useEthersProvider.ts)
+- [ALM Vaults data](https://github.com/cryptoalgebra/integral-ui/blob/integral-1.2-beta/src/hooks/alm/useALMVaults.ts)
+- [User Data in Vaults](https://github.com/cryptoalgebra/integral-ui/blob/integral-1.2-beta/src/hooks/alm/useUserALMVaults.ts)
+- [Approve](https://github.com/cryptoalgebra/integral-ui/blob/abc096509f2f32be2cda2b6b30fd3151580a8e97/src/components/create-position/AddAutomatedLiquidityButton/index.tsx#L38)
+- [Deposit](https://github.com/cryptoalgebra/integral-ui/blob/abc096509f2f32be2cda2b6b30fd3151580a8e97/src/components/create-position/AddAutomatedLiquidityButton/index.tsx#L54)
+- [Withdraw](https://github.com/cryptoalgebra/integral-ui/blob/abc096509f2f32be2cda2b6b30fd3151580a8e97/src/components/modals/RemoveALMLiquidityModal/index.tsx#L42)
