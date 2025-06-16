@@ -223,22 +223,20 @@ export async function getUserAmounts(
 ) {
   const [totalAmounts, totalSupply, shares] = await Promise.all([
     getTotalAmounts(vaultAddress, jsonProvider, dex, true, token0Decimals, token1Decimals),
-    getTotalSupply(vaultAddress, jsonProvider, dex),
-    getUserBalance(accountAddress, vaultAddress, jsonProvider, dex),
+    getTotalSupply(vaultAddress, jsonProvider, dex, true),
+    getUserBalance(accountAddress, vaultAddress, jsonProvider, dex, true),
   ]);
 
   const userAmountsBN: UserAmountsBN = [
-    BigNumber.from(((Number(shares) * Number(totalAmounts[0].toBigInt())) / Number(totalSupply)).toFixed(0)),
-    BigNumber.from(((Number(shares) * Number(totalAmounts[1].toBigInt())) / Number(totalSupply)).toFixed(0)),
+    shares.mul(totalAmounts[0]).div(totalSupply),
+    shares.mul(totalAmounts[1]).div(totalSupply),
     shares,
   ];
-
-  userAmountsBN[0].toBigInt();
 
   const formattedUserAmounts: UserAmounts = [
     formatUnits(userAmountsBN[0], token0Decimals),
     formatUnits(userAmountsBN[1], token1Decimals),
-    shares,
+    formatUnits(shares, algebraVaultDecimals),
   ];
 
   if (raw) {
@@ -353,7 +351,7 @@ export async function getAllUserAmounts(
                 0: '0',
                 1: '0',
               }
-            : [BigNumber.from(0), BigNumber.from(0), '0'],
+            : [BigNumber.from(0), BigNumber.from(0), BigNumber.from(0)],
         } as UserAmountsInVault | UserAmountsInVaultBN;
       }
     });
