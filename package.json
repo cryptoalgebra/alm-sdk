@@ -1,6 +1,6 @@
 {
   "name": "@cryptoalgebra/alm-sdk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Algebra ALM SDK",
   "main": "dist/src/index.cjs.js",
   "module": "dist/src/index.esm.js",

@@ -100,7 +100,7 @@ export const vaultDepositsQuery = (page: number, createdAtTimestamp?: string, us
   }
 
   if (userAddress) {
-    filters.push(`to: $userAddress`);
+    filters.push(`origin: $userAddress`);
   }
 
   return gql`
@@ -137,7 +137,7 @@ export const vaultWithdrawsQuery = (page: number, createdAtTimestamp?: string, u
   }
 
   if (userAddress) {
-    filters.push(`to: $userAddress`);
+    filters.push(`origin: $userAddress`);
   }
 
   return gql`
