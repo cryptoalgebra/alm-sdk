@@ -10,7 +10,7 @@ import getGraphUrls from '../utils/getGraphUrls';
 import cache from '../utils/cache';
 import { sendFeeAprQueryRequest } from '../graphql/functions';
 // eslint-disable-next-line import/no-cycle
-import { getVaultTvl } from './priceFromPool';
+import { _getTotalAmounts } from './_totalBalances';
 
 function normalizeVaultData(vaultData: any): AlgebraVault {
   // If it's a v2 response (has token0/token1)
@@ -152,9 +152,8 @@ export async function getExtendedAlgebraVault(
 
   try {
     const vault = await getAlgebraVaultInfo(chainId, dex, vaultAddress, jsonProvider);
-    const isInv = vault.allowTokenB;
 
-    const { totalAmounts } = await getVaultTvl(vault, jsonProvider, isInv, token0Decimals, token1Decimals);
+    const totalAmounts = await _getTotalAmounts(vault, jsonProvider, token0Decimals, token1Decimals, true);
 
     const { url } = getGraphUrls(chainId, dex);
     const { almVault } = await sendFeeAprQueryRequest(url, vaultAddress);

@@ -37,9 +37,9 @@ export async function getTotalAmounts(
   const { vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
 
   if (!raw) {
-    return _getTotalAmounts(vault, jsonProvider, false, token0Decimals, token1Decimals);
+    return _getTotalAmounts(vault, jsonProvider, token0Decimals, token1Decimals, false);
   }
-  return _getTotalAmounts(vault, jsonProvider, true, token0Decimals, token1Decimals);
+  return _getTotalAmounts(vault, jsonProvider, token0Decimals, token1Decimals, true);
 }
 
 export async function getTotalSupply(

@@ -35,25 +35,25 @@ export async function getTokenDecimals(
 export async function _getTotalAmounts(
   vault: AlgebraVault,
   jsonProvider: JsonRpcProvider,
-  raw: false,
   token0Decimals: number,
   token1Decimals: number,
+  raw: false,
 ): Promise<TotalAmounts>;
 
 export async function _getTotalAmounts(
   vault: AlgebraVault,
   jsonProvider: JsonRpcProvider,
-  raw: true,
   token0Decimals: number,
   token1Decimals: number,
+  raw: true,
 ): Promise<TotalAmountsBN>;
 
 export async function _getTotalAmounts(
   vault: AlgebraVault,
   jsonProvider: JsonRpcProvider,
-  raw: boolean,
   token0Decimals: number,
   token1Decimals: number,
+  raw?: boolean,
 ) {
   const vaultContract = getAlgebraVaultContract(vault.id, jsonProvider);
   const totalAmountsBN = await vaultContract.getTotalAmounts();

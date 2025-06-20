@@ -35,7 +35,7 @@ import {
   encodeTotalSupplyCall,
   multicall,
 } from '../utils/multicallUtils';
-import { getTotalAmounts, getTotalSupply } from './totalBalances';
+import { _getTotalAmounts, _getTotalSupply } from './_totalBalances';
 
 const promises: Record<string, Promise<any>> = {};
 
@@ -221,10 +221,12 @@ export async function getUserAmounts(
   token1Decimals: number,
   raw: boolean,
 ) {
+  const { vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
+
   const [totalAmounts, totalSupply, shares] = await Promise.all([
-    getTotalAmounts(vaultAddress, jsonProvider, dex, true, token0Decimals, token1Decimals),
-    getTotalSupply(vaultAddress, jsonProvider, dex, true),
-    getUserBalance(accountAddress, vaultAddress, jsonProvider, dex, true),
+    _getTotalAmounts(vault, jsonProvider, token0Decimals, token1Decimals, true),
+    _getTotalSupply(vaultAddress, jsonProvider, true),
+    _getUserBalance(accountAddress, vaultAddress, jsonProvider, true),
   ]);
 
   const userAmountsBN: UserAmountsBN = [
