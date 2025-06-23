@@ -5,11 +5,19 @@ export interface VaultQueryData {
   almVault: AlgebraVault;
 }
 
+export interface VaultWithPoolQueryData extends VaultQueryData {
+  pool: string;
+}
+
 export interface VaultsByTokensQueryData {
   almVaults: AlgebraVault[];
 }
 export interface VaultsByPoolQueryData {
   almVaults: { id: string }[];
+}
+
+export interface AllVaultsQueryData {
+  almVaults: VaultWithPoolQueryData[];
 }
 
 export interface RebalancesQueryData {

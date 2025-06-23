@@ -3,9 +3,15 @@ import { request } from 'graphql-request';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { SupportedDex, SupportedChainId, AlgebraVault } from '../types';
 // eslint-disable-next-line import/no-cycle
-import { VaultQueryData, VaultsByPoolQueryData, VaultsByTokensQueryData } from '../types/vaultQueryData';
+import {
+  AllVaultsQueryData,
+  VaultQueryData,
+  VaultsByPoolQueryData,
+  VaultsByTokensQueryData,
+  VaultWithPoolQueryData,
+} from '../types/vaultQueryData';
 import { getAlgebraVaultContract } from '../contracts';
-import { vaultByPoolQuery, vaultByTokensQuery, vaultQueryAlgebra } from '../graphql/queries';
+import { allVaultsQuery, vaultByPoolQuery, vaultByTokensQuery, vaultQueryAlgebra } from '../graphql/queries';
 import getGraphUrls from '../utils/getGraphUrls';
 import cache from '../utils/cache';
 import { sendFeeAprQueryRequest } from '../graphql/functions';
@@ -77,6 +83,10 @@ async function sendVaultsByPoolQueryRequest(url: string, poolAddress: string, qu
   return request<VaultsByPoolQueryData, { poolAddress: string }>(url, query, {
     poolAddress: poolAddress.toLowerCase(),
   }).then(({ almVaults }) => almVaults.map((vault) => vault.id));
+}
+
+async function sendAllVaultsQueryRequest(url: string, query: string): Promise<VaultWithPoolQueryData[]> {
+  return request<AllVaultsQueryData>(url, query).then(({ almVaults }) => almVaults.map((vault) => vault));
 }
 
 export async function getAlgebraVaultInfo(
@@ -259,6 +269,36 @@ export async function getVaultsByPool(
     } catch (error2) {
       console.error('Request to public graph URL failed:', error2);
       throw new Error(`Could not get vaults by pool ${poolAddress}`);
+    }
+  }
+}
+
+export async function getAllVaults(chainId: SupportedChainId, dex: SupportedDex): Promise<VaultWithPoolQueryData[]> {
+  const key = `allVaults-${chainId}-${dex}`;
+  const cachedData = cache.get(key);
+  if (cachedData) {
+    return cachedData as VaultWithPoolQueryData[];
+  }
+  const { url, publishedUrl } = getGraphUrls(chainId, dex, true);
+  const ttl = 3600000;
+  try {
+    if (publishedUrl) {
+      const result = await sendAllVaultsQueryRequest(publishedUrl, allVaultsQuery);
+      cache.set(key, result, ttl);
+      return result;
+    }
+    throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
+  } catch (error) {
+    if (publishedUrl) {
+      console.error('Request to published graph URL failed:', error);
+    }
+    try {
+      const result = await sendAllVaultsQueryRequest(url, allVaultsQuery);
+      cache.set(key, result, ttl);
+      return result;
+    } catch (error2) {
+      console.error('Request to public graph URL failed:', error2);
+      throw new Error(`Could not get all vaults`);
     }
   }
 }
