@@ -345,6 +345,7 @@ export async function getAllUserAmounts(
         }
       } else {
         return {
+          poolAddress: share.vault.pool,
           vaultAddress: share.vault.id,
           userAmounts: !raw
             ? {

@@ -227,6 +227,7 @@ export function userBalancesQuery() {
           id
           token0
           token1
+          pool
         }
         vaultShareBalance
       }

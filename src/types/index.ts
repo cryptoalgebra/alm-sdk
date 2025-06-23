@@ -23,6 +23,7 @@ export type TotalAmounts = [string, string, string] & { total0: string; total1: 
 export type UserAmounts = [string, string, string];
 
 export type UserAmountsInVault = {
+  poolAddress: string;
   vaultAddress: string;
   userAmounts: UserAmounts;
 };
@@ -47,6 +48,7 @@ export type VaultShares = {
     id: string;
     tokenA: string;
     tokenB: string;
+    pool: string;
   };
   vaultShareBalance: string;
 };
