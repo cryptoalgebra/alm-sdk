@@ -126,10 +126,12 @@ export type PriceChange = {
 
 export type UserBalanceInVault = {
   vaultAddress: string;
+  poolAddress: string;
   shares: string;
 };
 export type UserBalanceInVaultBN = {
   vaultAddress: string;
+  poolAddress: string;
   shares: BigNumber;
 };
 

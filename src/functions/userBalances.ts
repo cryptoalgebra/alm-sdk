@@ -1,7 +1,7 @@
 /* eslint-disable no-redeclare */
 /* eslint-disable import/prefer-default-export */
 
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers';
 import { BigNumber } from 'ethers';
 // eslint-disable-next-line import/no-unresolved
 import { request } from 'graphql-request';
@@ -15,7 +15,6 @@ import {
   UserAmountsInVaultBN,
   UserBalanceInVault,
   UserBalanceInVaultBN,
-  UserBalances,
   VaultShares,
   algebraVaultDecimals,
 } from '../types';
@@ -115,8 +114,8 @@ export async function sendUserBalancesQueryRequest(
   url: string,
   accountAddress: string,
   query: string,
-): Promise<UserBalancesQueryData['vaultShares']> {
-  return request<UserBalancesQueryData, { accountAddress: string }>(url, query, {
+): Promise<VaultShares[]> {
+  return request<UserBalancesQueryData['vaultShares'], { accountAddress: string }>(url, query, {
     accountAddress: accountAddress.toLowerCase(),
   }).then(({ vaultShares }) => vaultShares);
 }
@@ -176,15 +175,18 @@ export async function getAllUserBalances(
     }
   }
 
-  const balances = await promises[key];
+  const balances: VaultShares[] = await promises[key];
   if (balances) {
-    const userBalances = (balances as UserBalances).vaultShares;
-    shares = userBalances.map((balance) => {
-      return { vaultAddress: balance.vault.id, shares: balance.vaultShareBalance };
+    shares = balances.map((balance) => {
+      return { vaultAddress: balance.vault.id, shares: balance.vaultShareBalance, poolAddress: balance.vault.pool };
     });
     return raw
       ? shares.map((s) => {
-          return { vaultAddress: s.vaultAddress, shares: parseBigInt(s.shares, algebraVaultDecimals) };
+          return {
+            vaultAddress: s.vaultAddress,
+            shares: parseBigInt(s.shares, algebraVaultDecimals),
+            poolAddress: s.poolAddress,
+          };
         })
       : shares;
   } else {
@@ -250,20 +252,20 @@ export async function getUserAmounts(
 
 export async function getAllUserAmounts(
   accountAddress: string,
-  jsonProvider: JsonRpcProvider,
+  jsonProvider: Web3Provider,
   dex: SupportedDex,
 ): Promise<UserAmountsInVault[]>;
 
 export async function getAllUserAmounts(
   accountAddress: string,
-  jsonProvider: JsonRpcProvider,
+  jsonProvider: Web3Provider,
   dex: SupportedDex,
   raw: true,
 ): Promise<UserAmountsInVaultBN[]>;
 
 export async function getAllUserAmounts(
   accountAddress: string,
-  jsonProvider: JsonRpcProvider,
+  jsonProvider: Web3Provider,
   dex: SupportedDex,
   raw?: true,
 ) {
@@ -295,13 +297,14 @@ export async function getAllUserAmounts(
   }
 
   try {
-    const balances = await promises[key];
-    if (!balances?.vaultShares?.length) {
+    const balances: VaultShares[] = await promises[key];
+
+    if (!balances?.length) {
       return [];
     }
 
     // Prepare multicall calls
-    const calls = balances.vaultShares.flatMap((share: VaultShares) => {
+    const calls = balances.flatMap((share: VaultShares) => {
       // Normalize token naming by checking which properties exist
       const token0Address = getTokenAddress(share.vault, 0);
       const token1Address = getTokenAddress(share.vault, 1);
@@ -319,7 +322,7 @@ export async function getAllUserAmounts(
     const results = await multicall(calls, chainId, signer);
 
     // Process results
-    const processedResults = balances.vaultShares.map((share: VaultShares, index: number) => {
+    const processedResults = balances.map((share: VaultShares, index: number) => {
       const baseIndex = index * 4;
       const totalAmounts = decodeTotalAmountsResult(results[baseIndex], share.vault.id);
       const totalSupply = decodeTotalSupplyResult(results[baseIndex + 1], share.vault.id);
