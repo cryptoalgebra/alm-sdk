@@ -338,10 +338,10 @@ export async function getAllUserAmounts(
 
         if (!raw) {
           const userAmounts = [formatBigInt(amount0, token0Decimals), formatBigInt(amount1, token1Decimals)];
-          return { vaultAddress: share.vault.id, userAmounts };
+          return { vaultAddress: share.vault.id, userAmounts, poolAddress: share.vault.pool };
         } else {
           const userAmountsBN = [amount0, amount1];
-          return { vaultAddress: share.vault.id, userAmounts: userAmountsBN };
+          return { vaultAddress: share.vault.id, userAmounts: userAmountsBN, poolAddress: share.vault.pool };
         }
       } else {
         return {

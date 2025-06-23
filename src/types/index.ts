@@ -29,6 +29,7 @@ export type UserAmountsInVault = {
 };
 
 export type UserAmountsInVaultBN = {
+  poolAddress: string;
   vaultAddress: string;
   userAmounts: UserAmountsBN;
 };
