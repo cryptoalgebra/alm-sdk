@@ -148,6 +148,7 @@ Withdraws a specified number of shares from the vault, returning both underlying
 ```ts
 const percentMultiplier = 1; // 100%
 const shareToWithdraw = Number(userShare) * percentMultiplier;
+const slippage = 1 // 1%
 
 if (useNativeToken) {
    const tx = await withdrawNativeToken(
@@ -155,15 +156,17 @@ if (useNativeToken) {
         shareToWithdraw,
         vaultAddress,
         provider,
-        dex
+        dex,
+        slippage
     );
 } else {
-   const tx = await withdraw(
+   const tx = await withdrawWithSlippage(
         account,
         shareToWithdraw,
         vaultAddress,
         provider,
-        dex
+        dex,
+        slippage
     );
 }
 ```
