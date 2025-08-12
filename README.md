@@ -30,7 +30,7 @@ This SDK uses ethers.js for blockchain interactions (calls, sending transactions
 
 Get a list of vault addresses associated with a specific pool
 ```ts
-const vaultAddresses: string[] = await getVaultsByPool(poolAddress, chainId, dex);
+const vaultAddresses: string[] = await getVaultsByPool(poolAddress, chainId);
 ```
 
 - `getExtendedAlgebraVault`
@@ -39,7 +39,6 @@ Retrieve extended vault information, including token addresses, deposit token, v
 ```ts
 const vaultData: ExtendedAlgebraVault = await getExtendedAlgebraVault(
     vaultAddress,
-    dex,
     chainId,
     provider,
     token0.decimals,
@@ -54,7 +53,6 @@ Returns the total number of both tokens stored in the vault
 const [totalAmount0, totalAmount1] = await getTotalAmounts(
     vaultAddress,
     provider,
-    dex,
     true,
     token0.decimals,
     token1.decimals
@@ -65,7 +63,7 @@ const [totalAmount0, totalAmount1] = await getTotalAmounts(
   
 Returns the total number of vault shares
 ```ts
-const totalSupply = await getTotalSupply(vaultAddress, provider, dex)
+const totalSupply = await getTotalSupply(vaultAddress, provider)
 ```
 
 ## 👤 User Data in Vaults
@@ -78,7 +76,6 @@ const [userAmount0, userAmount1, shares] = await getUserAmounts(
     account,
     vaultAddress,
     provider,
-    dex,
     token0.decimals,
     token1.decimals,
     true
@@ -96,8 +93,7 @@ const { pnl, roi } = await calculateUserDepositTokenPNL(
     userAmount1.toString(),
     token0.decimals,
     token1.decimals,
-    provider,
-    dex
+    provider
 );
 ```
 
@@ -112,7 +108,6 @@ const tx = await approveDepositToken(
     0, // token idx can be 0 or 1
     vaultAddress,
     provider,
-    dex,
     amount // (optional)
 );
 ```
@@ -127,8 +122,7 @@ if (useNativeToken) {
         vault.allowTokenA ? amount : "0",
         vault.allowTokenB ? amount : "0",
         vaultAddress,
-        provider,
-        dex
+        provider
     );
 } else {
     const tx = await deposit(
@@ -136,8 +130,7 @@ if (useNativeToken) {
         vault.allowTokenA ? amount : "0",
         vault.allowTokenB ? amount : "0",
         vaultAddress,
-        provider,
-        dex
+        provider
     );
 }
 ```
@@ -156,7 +149,6 @@ if (useNativeToken) {
         shareToWithdraw,
         vaultAddress,
         provider,
-        dex,
         slippage
     );
 } else {
@@ -165,7 +157,6 @@ if (useNativeToken) {
         shareToWithdraw,
         vaultAddress,
         provider,
-        dex,
         slippage
     );
 }
