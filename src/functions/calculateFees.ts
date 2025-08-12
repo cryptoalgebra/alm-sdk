@@ -4,7 +4,7 @@
 
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from '@ethersproject/bignumber';
-import { Fees, FeesInfo, SupportedDex, TotalAmounts, TotalAmountsBN, VaultState } from '../types';
+import { Fees, FeesInfo, TotalAmounts, TotalAmountsBN, VaultState } from '../types';
 import { validateVaultData } from './vault';
 import { getTokenDecimals } from './_totalBalances';
 import formatBigInt from '../utils/formatBigInt';
@@ -78,14 +78,12 @@ export function getTotalFeesAmountInBaseTokens(
 export async function getFeesCollected(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   days?: number,
 ): Promise<TotalAmounts>;
 
 export async function getFeesCollected(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   raw: true,
   days?: number,
 ): Promise<TotalAmountsBN>;
@@ -93,20 +91,19 @@ export async function getFeesCollected(
 export async function getFeesCollected(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   rawOrDays?: true | number,
   days?: number,
 ): Promise<TotalAmounts | TotalAmountsBN> {
-  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
-  getGraphUrls(chainId, dex, true);
+  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider);
+  getGraphUrls(chainId, true);
 
   const token0Decimals = await getTokenDecimals(vault.tokenA, jsonProvider, chainId);
   const token1Decimals = await getTokenDecimals(vault.tokenB, jsonProvider, chainId);
 
   const numOfDays = typeof rawOrDays === 'boolean' ? days : rawOrDays;
-  const rebalances = await _getRebalances(vaultAddress, chainId, dex, numOfDays);
+  const rebalances = await _getRebalances(vaultAddress, chainId, numOfDays);
   if (!rebalances) throw new Error(`Error getting vault rebalances on ${chainId} for ${vaultAddress}`);
-  const collectedFees = await _getFeesCollectedEvents(vaultAddress, chainId, dex, numOfDays);
+  const collectedFees = await _getFeesCollectedEvents(vaultAddress, chainId, numOfDays);
   if (!collectedFees) throw new Error(`Error getting vault collected fees on ${chainId} for ${vaultAddress}`);
 
   const amount0BN = getCollectedTokenAmountBN(0, rebalances).add(getCollectedTokenAmountBN(0, collectedFees));
@@ -135,15 +132,14 @@ export async function getFeesCollected(
 export async function getFeesCollectedInfo(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   forDays?: number[],
 ): Promise<FeesInfo[]> {
-  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
-  getGraphUrls(chainId, dex, true);
+  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider);
+  getGraphUrls(chainId, true);
 
   const token0Decimals = await getTokenDecimals(vault.tokenA, jsonProvider, chainId);
   const token1Decimals = await getTokenDecimals(vault.tokenB, jsonProvider, chainId);
-  const isVaultInverted = await isTokenAllowed(1, vaultAddress, jsonProvider, dex);
+  const isVaultInverted = await isTokenAllowed(1, vaultAddress, jsonProvider);
 
   const { tvl } = await getVaultTvl(vault, jsonProvider, isVaultInverted, token0Decimals, token1Decimals);
 
@@ -152,9 +148,9 @@ export async function getFeesCollectedInfo(
 
   const maxTimePeriod = Math.max(...arrayDays);
 
-  const rebalances = await _getRebalances(vaultAddress, chainId, dex, maxTimePeriod);
+  const rebalances = await _getRebalances(vaultAddress, chainId, maxTimePeriod);
   if (!rebalances) throw new Error(`Error getting vault rebalances on ${chainId} for ${vaultAddress}`);
-  const collectedFees = await _getFeesCollectedEvents(vaultAddress, chainId, dex, maxTimePeriod);
+  const collectedFees = await _getFeesCollectedEvents(vaultAddress, chainId, maxTimePeriod);
   if (!collectedFees) throw new Error(`Error getting vault collected fees on ${chainId} for ${vaultAddress}`);
 
   const result = [] as FeesInfo[];

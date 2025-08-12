@@ -3,7 +3,6 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import {
   DepositTokenRatio,
   Fees,
-  SupportedDex,
   TotalAmounts,
   VaultMetrics,
   VaultTransactionEvent,
@@ -25,10 +24,9 @@ import { _getDeposits, _getFeesCollectedEvents, _getRebalances, _getWithdraws } 
 export async function getVaultMetrics(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   timeIntervals?: number[],
 ): Promise<(VaultMetrics | null)[]> {
-  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
+  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider);
 
   const decimals0 = await getTokenDecimals(vault.tokenA, jsonProvider, chainId);
   const decimals1 = await getTokenDecimals(vault.tokenB, jsonProvider, chainId);
@@ -40,7 +38,7 @@ export async function getVaultMetrics(
   // to remove/rewrite
   const arrDays = timeIntervals && timeIntervals.length > 0 ? timeIntervals : [1, 7, 30];
   const maxTimeInterval = Math.max(...arrDays);
-  // const allDtrs = await getAllDtrsForTimeInterval(vaultAddress, jsonProvider, dex, maxTimeInterval);
+  // const allDtrs = await getAllDtrsForTimeInterval(vaultAddress, jsonProvider, maxTimeInterval);
 
   let currLpPrice = 0;
   let currTvl = 0;
@@ -76,13 +74,13 @@ export async function getVaultMetrics(
     throw e;
   }
 
-  const rebalances = (await _getRebalances(vaultAddress, chainId, dex)) as Fees[];
+  const rebalances = (await _getRebalances(vaultAddress, chainId)) as Fees[];
   if (!rebalances) throw new Error(`Error getting vault rebalances on ${chainId} for ${vaultAddress}`);
-  const collectedFees = (await _getFeesCollectedEvents(vaultAddress, chainId, dex)) as Fees[];
+  const collectedFees = (await _getFeesCollectedEvents(vaultAddress, chainId)) as Fees[];
   if (!collectedFees) throw new Error(`Error getting vault collected fees on ${chainId} for ${vaultAddress}`);
-  const deposits = (await _getDeposits(vaultAddress, chainId, dex)) as VaultTransactionEvent[];
+  const deposits = (await _getDeposits(vaultAddress, chainId)) as VaultTransactionEvent[];
   if (!deposits) throw new Error(`Error getting vault deposits on ${chainId} for ${vaultAddress}`);
-  const withdraws = (await _getWithdraws(vaultAddress, chainId, dex)) as VaultTransactionEvent[];
+  const withdraws = (await _getWithdraws(vaultAddress, chainId)) as VaultTransactionEvent[];
   if (!withdraws) throw new Error(`Error getting vault withdraws on ${chainId} for ${vaultAddress}`);
 
   const vaultEvents = [...deposits, ...withdraws, ...rebalances, ...collectedFees].sort(
@@ -107,7 +105,7 @@ export async function getVaultMetrics(
     .map((e) => getDtrAtTransactionEvent(e, isInv, decimals0, decimals1));
   const currentDtr = {
     atTimestamp: Math.floor(Date.now() / 1000).toString(),
-    percent: await getCurrentDtr(vaultAddress, jsonProvider, dex, isInv, decimals0, decimals1),
+    percent: await getCurrentDtr(vaultAddress, jsonProvider, isInv, decimals0, decimals1),
   } as DepositTokenRatio;
 
   const allDtrs = [...arrDeposits, ...arrWithdraws, ...arrRebalances, ...arrOtherFees, currentDtr].sort(

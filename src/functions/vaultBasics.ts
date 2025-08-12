@@ -1,8 +1,8 @@
-import { SupportedDex, SupportedChainId } from '../types';
+import { SupportedChainId } from '../types';
 import { addressConfig } from '../config/addresses';
 
-export default function getVaultDeployer(vaultAddress: string, chainId: SupportedChainId, dex: SupportedDex): string {
-  const vaultDeployerAddress = addressConfig[chainId][dex]?.vaultDeployerAddress;
+export default function getVaultDeployer(vaultAddress: string, chainId: SupportedChainId): string {
+  const vaultDeployerAddress = addressConfig[chainId]?.vaultDeployerAddress;
 
   // const polVaults = [
   //   '0x4aef5144131db95c110af41c8ec09f46295a7c4b'.toLowerCase(),
@@ -16,7 +16,7 @@ export default function getVaultDeployer(vaultAddress: string, chainId: Supporte
   // }
 
   if (!vaultDeployerAddress) {
-    throw new Error(`Vault deployer not found for vault ${vaultAddress} on chain ${chainId} and dex ${dex}`);
+    throw new Error(`Vault deployer not found for vault ${vaultAddress} on chain ${chainId}`);
   }
   return vaultDeployerAddress;
 }

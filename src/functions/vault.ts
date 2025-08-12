@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
 import { request } from 'graphql-request';
 import { JsonRpcProvider } from '@ethersproject/providers';
-import { SupportedDex, SupportedChainId, AlgebraVault } from '../types';
+import { SupportedChainId, AlgebraVault } from '../types';
 // eslint-disable-next-line import/no-cycle
 import {
   AllVaultsQueryData,
@@ -91,7 +91,6 @@ async function sendAllVaultsQueryRequest(url: string, query: string): Promise<Va
 
 export async function getAlgebraVaultInfo(
   chainId: SupportedChainId,
-  dex: SupportedDex,
   vaultAddress: string,
   jsonProvider?: JsonRpcProvider,
 ): Promise<AlgebraVault> {
@@ -102,7 +101,7 @@ export async function getAlgebraVaultInfo(
     return cachedData as AlgebraVault;
   }
 
-  const { url, publishedUrl } = getGraphUrls(chainId, dex);
+  const { url, publishedUrl } = getGraphUrls(chainId);
   const thisQuery = vaultQueryAlgebra();
   if (url === 'none' && jsonProvider) {
     const result = await getVaultInfoFromContract(vaultAddress, jsonProvider);
@@ -147,7 +146,6 @@ export interface ExtendedAlgebraVault extends AlgebraVault {
 
 export async function getExtendedAlgebraVault(
   vaultAddress: string,
-  dex: SupportedDex,
   chainId: SupportedChainId,
   jsonProvider: JsonRpcProvider,
   token0Decimals: number,
@@ -161,11 +159,11 @@ export async function getExtendedAlgebraVault(
   }
 
   try {
-    const vault = await getAlgebraVaultInfo(chainId, dex, vaultAddress, jsonProvider);
+    const vault = await getAlgebraVaultInfo(chainId, vaultAddress, jsonProvider);
 
     const totalAmounts = await _getTotalAmounts(vault, jsonProvider, token0Decimals, token1Decimals, true);
 
-    const { url } = getGraphUrls(chainId, dex);
+    const { url } = getGraphUrls(chainId);
     const { almVault } = await sendFeeAprQueryRequest(url, vaultAddress);
 
     const result = {
@@ -184,7 +182,6 @@ export async function getExtendedAlgebraVault(
 
 async function getVaultsByTokensAB(
   chainId: SupportedChainId,
-  dex: SupportedDex,
   tokenA: string,
   tokenB: string,
 ): Promise<VaultsByTokensQueryData['almVaults']> {
@@ -195,7 +192,7 @@ async function getVaultsByTokensAB(
   }
 
   const ttl = 3600000;
-  const { url, publishedUrl } = getGraphUrls(chainId, dex, true);
+  const { url, publishedUrl } = getGraphUrls(chainId, true);
 
   const strVaultByTokensQuery = vaultByTokensQuery();
 
@@ -205,7 +202,7 @@ async function getVaultsByTokensAB(
       cache.set(key, result, ttl);
       return result;
     } else {
-      throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
+      throw new Error(`Published URL is invalid on chain ${chainId}`);
     }
   } catch (error) {
     if (publishedUrl) {
@@ -217,21 +214,20 @@ async function getVaultsByTokensAB(
       return result;
     } catch (error2) {
       console.error('Request to public graph URL failed:', error2);
-      throw new Error(`Could not get vaults by tokens, dex ${dex} on chain ${chainId}`);
+      throw new Error(`Could not get vaults by tokens, on chain ${chainId}`);
     }
   }
 }
 
 export async function getVaultsByTokens(
   chainId: SupportedChainId,
-  dex: SupportedDex,
   depositTokenAddress: string,
   pairedTokenAddress: string,
 ): Promise<VaultsByTokensQueryData['almVaults']> {
-  const arrVaults1 = (await getVaultsByTokensAB(chainId, dex, depositTokenAddress, pairedTokenAddress)).filter(
+  const arrVaults1 = (await getVaultsByTokensAB(chainId, depositTokenAddress, pairedTokenAddress)).filter(
     (v) => v.allowTokenA,
   );
-  const arrVaults2 = (await getVaultsByTokensAB(chainId, dex, pairedTokenAddress, depositTokenAddress)).filter(
+  const arrVaults2 = (await getVaultsByTokensAB(chainId, pairedTokenAddress, depositTokenAddress)).filter(
     (v) => v.allowTokenB,
   );
 
@@ -239,17 +235,13 @@ export async function getVaultsByTokens(
   return [...arrVaults1, ...arrVaults2];
 }
 
-export async function getVaultsByPool(
-  poolAddress: string,
-  chainId: SupportedChainId,
-  dex: SupportedDex,
-): Promise<string[]> {
+export async function getVaultsByPool(poolAddress: string, chainId: SupportedChainId): Promise<string[]> {
   const key = `pool-${chainId}-${poolAddress}`;
   const cachedData = cache.get(key);
   if (cachedData) {
     return cachedData as string[];
   }
-  const { url, publishedUrl } = getGraphUrls(chainId, dex, true);
+  const { url, publishedUrl } = getGraphUrls(chainId, true);
   const ttl = 3600000;
   try {
     if (publishedUrl) {
@@ -257,7 +249,7 @@ export async function getVaultsByPool(
       cache.set(key, result, ttl);
       return result;
     }
-    throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
+    throw new Error(`Published URL is invalid on chain ${chainId}`);
   } catch (error) {
     if (publishedUrl) {
       console.error('Request to published graph URL failed:', error);
@@ -273,13 +265,13 @@ export async function getVaultsByPool(
   }
 }
 
-export async function getAllVaults(chainId: SupportedChainId, dex: SupportedDex): Promise<VaultWithPoolQueryData[]> {
-  const key = `allVaults-${chainId}-${dex}`;
+export async function getAllVaults(chainId: SupportedChainId): Promise<VaultWithPoolQueryData[]> {
+  const key = `allVaults-${chainId}`;
   const cachedData = cache.get(key);
   if (cachedData) {
     return cachedData as VaultWithPoolQueryData[];
   }
-  const { url, publishedUrl } = getGraphUrls(chainId, dex, true);
+  const { url, publishedUrl } = getGraphUrls(chainId, true);
   const ttl = 3600000;
   try {
     if (publishedUrl) {
@@ -287,7 +279,7 @@ export async function getAllVaults(chainId: SupportedChainId, dex: SupportedDex)
       cache.set(key, result, ttl);
       return result;
     }
-    throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
+    throw new Error(`Published URL is invalid on chain ${chainId}`);
   } catch (error) {
     if (publishedUrl) {
       console.error('Request to published graph URL failed:', error);
@@ -306,7 +298,6 @@ export async function getAllVaults(chainId: SupportedChainId, dex: SupportedDex)
 export async function validateVaultData(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
 ): Promise<{ chainId: SupportedChainId; vault: AlgebraVault }> {
   const { chainId } = await jsonProvider.getNetwork();
 
@@ -314,7 +305,7 @@ export async function validateVaultData(
     throw new Error(`Unsupported chainId: ${chainId ?? 'undefined'}`);
   }
 
-  const vault = await getAlgebraVaultInfo(chainId, dex, vaultAddress, jsonProvider);
+  const vault = await getAlgebraVaultInfo(chainId, vaultAddress, jsonProvider);
 
   return { chainId, vault };
 }

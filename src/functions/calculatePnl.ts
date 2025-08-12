@@ -1,6 +1,5 @@
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from 'ethers';
-import { SupportedDex } from '../types';
 import cache from '../utils/cache';
 import formatBigInt from '../utils/formatBigInt';
 // eslint-disable-next-line import/no-cycle
@@ -27,7 +26,6 @@ export async function calculateUserDepositTokenPNL(
   decimals0: number,
   decimals1: number,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
 ): Promise<UserPnl> {
   const { chainId } = await getChainByProvider(jsonProvider);
 
@@ -39,11 +37,11 @@ export async function calculateUserDepositTokenPNL(
 
   const ttl = 3600000;
 
-  const { vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
+  const { vault } = await validateVaultData(vaultAddress, jsonProvider);
   try {
-    const deposits = await getUserDeposits(accountAddress, vaultAddress, dex, chainId);
+    const deposits = await getUserDeposits(accountAddress, vaultAddress, chainId);
 
-    const withdraws = await getUserWithdraws(accountAddress, vaultAddress, dex, chainId);
+    const withdraws = await getUserWithdraws(accountAddress, vaultAddress, chainId);
 
     const totalDepositAmountBN = deposits.reduce((acc, deposit) => {
       const amount = getAmountsInDepositToken(

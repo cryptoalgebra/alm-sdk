@@ -3,7 +3,7 @@
 
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from '@ethersproject/bignumber';
-import { AlgebraVault, SupportedChainId, SupportedDex, TotalAmountsBN } from '../types';
+import { AlgebraVault, SupportedChainId, TotalAmountsBN } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { getAlgebraVaultInfo } from './vault';
 import { getTotalAmounts } from './totalBalances';
@@ -66,7 +66,6 @@ export async function getVaultTvl(
 export async function getCurrLpPrice(
   vault: AlgebraVault,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   chainId: SupportedChainId,
   isVaultInverted: boolean,
   token0decimals: number,
@@ -90,7 +89,6 @@ export async function getCurrLpPrice(
 export async function getCurrentDtr(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   isVaultInverted: boolean,
   token0decimals: number,
   token1decimals: number,
@@ -101,10 +99,10 @@ export async function getCurrentDtr(
     throw new Error(`Unsupported chainId: ${chainId ?? 'undefined'}`);
   }
 
-  const vault = await getAlgebraVaultInfo(chainId, dex, vaultAddress, jsonProvider);
-  if (!vault) throw new Error(`Vault ${vaultAddress} not found on chain ${chainId} and dex ${dex}`);
+  const vault = await getAlgebraVaultInfo(chainId, vaultAddress, jsonProvider);
+  if (!vault) throw new Error(`Vault ${vaultAddress} not found on chain ${chainId}`);
 
-  const totalAmounts = await getTotalAmounts(vaultAddress, jsonProvider, dex, false, token0decimals, token1decimals);
+  const totalAmounts = await getTotalAmounts(vaultAddress, jsonProvider, false, token0decimals, token1decimals);
   const price = await getCurrPrice(vault, jsonProvider, isVaultInverted, token0decimals, token1decimals);
   if (Number(totalAmounts.total0) + Number(totalAmounts.total1) * price === 0) return 0;
   const dtr = !isVaultInverted

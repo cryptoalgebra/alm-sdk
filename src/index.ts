@@ -9,7 +9,6 @@ export * from './functions/calculateDtr';
 export * from './functions/calculateApr';
 export * from './functions/vaultMetrics';
 export * from './functions/vaultTvl';
-export * from './functions/chains';
 export * from './functions/vaultPositions';
 export * from './functions/getFeeAprs';
 export * from './types/index';

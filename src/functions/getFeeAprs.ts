@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { JsonRpcProvider } from '@ethersproject/providers';
-import { FeeAprData, SupportedDex } from '../types';
+import { FeeAprData } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
 import { graphUrls } from '../graphql/constants';
@@ -16,12 +16,8 @@ import { sendFeeAprQueryRequest } from '../graphql/functions';
  * @param dex The DEX identifier
  * @returns Fee APR data for different time periods or null if data not available
  */
-export async function getFeeAprs(
-  vaultAddress: string,
-  jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
-): Promise<FeeAprData | null> {
-  const key = `feeAprs-${dex}-${vaultAddress}`;
+export async function getFeeAprs(vaultAddress: string, jsonProvider: JsonRpcProvider): Promise<FeeAprData | null> {
+  const key = `feeAprs-${vaultAddress}`;
   const cachedData = cache.get(key);
   if (cachedData) {
     return cachedData as FeeAprData;
@@ -30,16 +26,16 @@ export async function getFeeAprs(
   // Cache for 30 minutes
   const ttl = 30 * 60 * 1000;
 
-  const { chainId } = await validateVaultData(vaultAddress, jsonProvider, dex);
+  const { chainId } = await validateVaultData(vaultAddress, jsonProvider);
 
   // Check if the subgraph is version 2
-  const dexConfig = graphUrls[chainId]?.[dex];
+  const dexConfig = graphUrls[chainId];
   if (!dexConfig) {
-    console.error(`This function is not supported on chain ${chainId} and dex ${dex}:`);
+    console.error(`This function is not supported on chain ${chainId}:`);
     return null;
   }
 
-  const { publishedUrl, url } = getGraphUrls(chainId, dex, true);
+  const { publishedUrl, url } = getGraphUrls(chainId, true);
 
   try {
     let result: FeeAprQueryResponse | null = null;
@@ -75,7 +71,7 @@ export async function getFeeAprs(
     cache.set(key, feeAprData, ttl);
     return feeAprData;
   } catch (error) {
-    console.error(`Could not get fee APRs for vault ${vaultAddress} on chain ${chainId} and dex ${dex}:`, error);
+    console.error(`Could not get fee APRs for vault ${vaultAddress} on chain ${chainId}:`, error);
     return null;
   }
 }

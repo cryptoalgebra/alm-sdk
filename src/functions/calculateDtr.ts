@@ -4,7 +4,7 @@
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { parseUnits } from '@ethersproject/units';
-import { AverageDepositTokenRatio, DepositTokenRatio, SupportedDex, VaultState, VaultTransactionEvent } from '../types';
+import { AverageDepositTokenRatio, DepositTokenRatio, VaultState, VaultTransactionEvent } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
 import { getTokenDecimals } from './_totalBalances';
@@ -126,21 +126,20 @@ export function getDtrAtFeeCollectionEvent(
 export async function getAllDtrsForTimeInterval(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   timeInterval: number,
 ): Promise<DepositTokenRatio[]> {
-  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
+  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider);
   const token0Decimals = await getTokenDecimals(vault.tokenA, jsonProvider, chainId);
   const token1Decimals = await getTokenDecimals(vault.tokenB, jsonProvider, chainId);
-  const isVaultInverted = await isTokenAllowed(1, vaultAddress, jsonProvider, dex);
+  const isVaultInverted = await isTokenAllowed(1, vaultAddress, jsonProvider);
 
-  const rebalances = await _getRebalances(vaultAddress, chainId, dex, timeInterval);
+  const rebalances = await _getRebalances(vaultAddress, chainId, timeInterval);
   if (!rebalances) throw new Error(`Error getting vault rebalances on ${chainId} for ${vaultAddress}`);
-  const collectedFees = await _getFeesCollectedEvents(vaultAddress, chainId, dex, timeInterval);
+  const collectedFees = await _getFeesCollectedEvents(vaultAddress, chainId, timeInterval);
   if (!collectedFees) throw new Error(`Error getting vault collected fees on ${chainId} for ${vaultAddress}`);
-  const deposits = await _getDeposits(vaultAddress, chainId, dex, timeInterval);
+  const deposits = await _getDeposits(vaultAddress, chainId, timeInterval);
   if (!deposits) throw new Error(`Error getting vault deposits on ${chainId} for ${vaultAddress}`);
-  const withdraws = await _getWithdraws(vaultAddress, chainId, dex, timeInterval);
+  const withdraws = await _getWithdraws(vaultAddress, chainId, timeInterval);
   if (!withdraws) throw new Error(`Error getting vault withdraws on ${chainId} for ${vaultAddress}`);
 
   const arrRebalances = rebalances
@@ -161,7 +160,7 @@ export async function getAllDtrsForTimeInterval(
     .map((e) => getDtrAtTransactionEvent(e, isVaultInverted, token0Decimals, token1Decimals));
   const currentDtr = {
     atTimestamp: Math.floor(Date.now() / 1000).toString(),
-    percent: await getCurrentDtr(vaultAddress, jsonProvider, dex, isVaultInverted, token0Decimals, token1Decimals),
+    percent: await getCurrentDtr(vaultAddress, jsonProvider, isVaultInverted, token0Decimals, token1Decimals),
   } as DepositTokenRatio;
 
   const result = [...arrDeposits, ...arrWithdraws, ...arrRebalances, ...arrOtherFees, currentDtr].sort(
@@ -191,7 +190,6 @@ export function getAverageDtr(allDtrs: DepositTokenRatio[]): number {
 export async function getAverageDepositTokenRatios(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   timeIntervals: number[] = [1, 7, 30],
 ): Promise<AverageDepositTokenRatio[]> {
   let forTimeIntervals = timeIntervals;
@@ -199,7 +197,7 @@ export async function getAverageDepositTokenRatios(
     forTimeIntervals = [0];
   }
   const maxTimeInterval = Math.max(...forTimeIntervals);
-  const allDtrs = await getAllDtrsForTimeInterval(vaultAddress, jsonProvider, dex, maxTimeInterval);
+  const allDtrs = await getAllDtrsForTimeInterval(vaultAddress, jsonProvider, maxTimeInterval);
   const result = [] as AverageDepositTokenRatio[];
   forTimeIntervals.forEach((interval) => {
     const dtrsForTimeInterval =

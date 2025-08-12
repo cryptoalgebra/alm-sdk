@@ -1,6 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
 import { JsonRpcProvider } from '@ethersproject/providers';
-import { SupportedDex } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
 import { getAlgebraVaultContract } from '../contracts';
@@ -41,11 +40,10 @@ function getPriceInDepositToken(isVaultInverted: boolean, decimals: [number, num
 export async function getVaultPositions(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   decimals0?: number,
   decimals1?: number,
 ): Promise<VaultPositionsInfo> {
-  const { vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
+  const { vault } = await validateVaultData(vaultAddress, jsonProvider);
   const tokenDecimals = [decimals0, decimals1] as [number, number];
   const isInv = vault.allowTokenB;
   const vaultContract = getAlgebraVaultContract(vaultAddress, jsonProvider);

@@ -3,7 +3,7 @@
 /* eslint-disable radix */
 /* eslint-disable import/no-cycle */
 // eslint-disable-next-line import/no-unresolved
-import { SupportedDex, SupportedChainId, Fees, VaultTransactionEvent, VaultState } from '../types';
+import { SupportedChainId, Fees, VaultTransactionEvent, VaultState } from '../types';
 import {
   allEventsQuery,
   rebalancesQuery,
@@ -26,7 +26,6 @@ import {
 export async function _getAllEvents(
   vaultAddress: string,
   chainId: SupportedChainId,
-  dex: SupportedDex,
   days?: number,
 ): Promise<VaultState[]> {
   const key = `allevents-${chainId}-${vaultAddress}-${days}`;
@@ -36,7 +35,7 @@ export async function _getAllEvents(
   }
 
   const ttl = 120000;
-  const { publishedUrl, url } = getGraphUrls(chainId, dex, true);
+  const { publishedUrl, url } = getGraphUrls(chainId, true);
 
   const currTimestamp = Date.now();
   const startTimestamp = days
@@ -53,7 +52,7 @@ export async function _getAllEvents(
       if (publishedUrl) {
         result = await sendAllEventsQueryRequest(publishedUrl, vaultAddress, startTimestamp, query(page));
       } else {
-        throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
+        throw new Error(`Published URL is invalid on chain ${chainId}`);
       }
     } catch (error) {
       if (publishedUrl) {
@@ -90,12 +89,7 @@ export async function _getAllEvents(
 }
 
 // eslint-disable-next-line no-underscore-dangle
-export async function _getRebalances(
-  vaultAddress: string,
-  chainId: SupportedChainId,
-  dex: SupportedDex,
-  days?: number,
-): Promise<Fees[]> {
+export async function _getRebalances(vaultAddress: string, chainId: SupportedChainId, days?: number): Promise<Fees[]> {
   const key = `rebalances-${chainId}-${vaultAddress}-${days}`;
   const cachedData = cache.get(key);
   if (cachedData) {
@@ -103,7 +97,7 @@ export async function _getRebalances(
   }
 
   const ttl = 120000;
-  const { publishedUrl, url } = getGraphUrls(chainId, dex, true);
+  const { publishedUrl, url } = getGraphUrls(chainId, true);
 
   const currTimestamp = Date.now();
   const startTimestamp = days
@@ -119,7 +113,7 @@ export async function _getRebalances(
       if (publishedUrl) {
         result = await sendRebalancesQueryRequest(publishedUrl, vaultAddress, startTimestamp, rebalancesQuery(page));
       } else {
-        throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
+        throw new Error(`Published URL is invalid on chain ${chainId}`);
       }
     } catch (error) {
       if (publishedUrl) {
@@ -151,7 +145,6 @@ export async function _getRebalances(
 export async function _getFeesCollectedEvents(
   vaultAddress: string,
   chainId: SupportedChainId,
-  dex: SupportedDex,
   days?: number,
 ): Promise<Fees[]> {
   const key = `fees-${chainId}-${vaultAddress}-${days}`;
@@ -161,7 +154,7 @@ export async function _getFeesCollectedEvents(
   }
 
   const ttl = 120000;
-  const { publishedUrl, url } = getGraphUrls(chainId, dex, true);
+  const { publishedUrl, url } = getGraphUrls(chainId, true);
 
   const currTimestamp = Date.now();
   const startTimestamp = days
@@ -182,7 +175,7 @@ export async function _getFeesCollectedEvents(
           vaultCollectFeesQuery(page),
         );
       } else {
-        throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
+        throw new Error(`Published URL is invalid on chain ${chainId}`);
       }
     } catch (error) {
       if (publishedUrl) {
@@ -214,7 +207,6 @@ export async function _getFeesCollectedEvents(
 export async function _getDeposits(
   vaultAddress: string,
   chainId: SupportedChainId,
-  dex: SupportedDex,
   days?: number,
 ): Promise<VaultTransactionEvent[]> {
   const key = `deposits-${chainId}-${vaultAddress}-${days}`;
@@ -224,7 +216,7 @@ export async function _getDeposits(
   }
 
   const ttl = 120000;
-  const { publishedUrl, url } = getGraphUrls(chainId, dex, true);
+  const { publishedUrl, url } = getGraphUrls(chainId, true);
 
   const currTimestamp = Date.now();
   const startTimestamp = days
@@ -240,7 +232,7 @@ export async function _getDeposits(
       if (publishedUrl) {
         result = await sendDepositsQueryRequest(publishedUrl, vaultAddress, vaultDepositsQuery(page), startTimestamp);
       } else {
-        throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
+        throw new Error(`Published URL is invalid on chain ${chainId}`);
       }
     } catch (error) {
       if (publishedUrl) {
@@ -272,7 +264,6 @@ export async function _getDeposits(
 export async function _getWithdraws(
   vaultAddress: string,
   chainId: SupportedChainId,
-  dex: SupportedDex,
   days?: number,
 ): Promise<VaultTransactionEvent[]> {
   const key = `withdraws-${chainId}-${vaultAddress}-${days}`;
@@ -282,7 +273,7 @@ export async function _getWithdraws(
   }
 
   const ttl = 120000;
-  const { publishedUrl, url } = getGraphUrls(chainId, dex, true);
+  const { publishedUrl, url } = getGraphUrls(chainId, true);
 
   const currTimestamp = Date.now();
   const startTimestamp = days
@@ -298,7 +289,7 @@ export async function _getWithdraws(
       if (publishedUrl) {
         result = await sendWithdrawsQueryRequest(publishedUrl, vaultAddress, vaultWithdrawsQuery(page), startTimestamp);
       } else {
-        throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
+        throw new Error(`Published URL is invalid on chain ${chainId}`);
       }
     } catch (error) {
       if (publishedUrl) {
@@ -330,7 +321,6 @@ export async function _getWithdraws(
 export async function _getAllVaultEvents(
   vaultAddress: string,
   chainId: SupportedChainId,
-  dex: SupportedDex,
   days?: number,
 ): Promise<VaultState[]> {
   const key = `allEvents-${chainId}-${vaultAddress}`;
@@ -340,7 +330,7 @@ export async function _getAllVaultEvents(
   }
 
   const ttl = 120000;
-  const allEvents = await _getAllEvents(vaultAddress, chainId, dex, days);
+  const allEvents = await _getAllEvents(vaultAddress, chainId, days);
   const result = allEvents.sort(
     (a, b) => Number(b.createdAtTimestamp) - Number(a.createdAtTimestamp), // recent events first
   );

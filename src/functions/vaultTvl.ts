@@ -3,7 +3,7 @@
 
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from '@ethersproject/bignumber';
-import { DepositTokenRatio, AlgebraVault, SupportedDex, VaultState, VaultTransactionEvent } from '../types';
+import { DepositTokenRatio, AlgebraVault, VaultState, VaultTransactionEvent } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
 import { getTokenDecimals } from './_totalBalances';
@@ -159,21 +159,20 @@ function getLpPriceAtTransactionEvent(
 export async function getVaultEventsForTimeInterval(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   timeInterval: number,
 ): Promise<VaultEvent[]> {
-  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
+  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider);
   const token0Decimals = await getTokenDecimals(vault.tokenA, jsonProvider, chainId);
   const token1Decimals = await getTokenDecimals(vault.tokenB, jsonProvider, chainId);
   const isVaultInverted = vault.allowTokenB;
 
-  const rebalances = await _getRebalances(vaultAddress, chainId, dex, timeInterval);
+  const rebalances = await _getRebalances(vaultAddress, chainId, timeInterval);
   if (!rebalances) throw new Error(`Error getting vault rebalances on ${chainId} for ${vaultAddress}`);
-  const collectedFees = await _getFeesCollectedEvents(vaultAddress, chainId, dex, timeInterval);
+  const collectedFees = await _getFeesCollectedEvents(vaultAddress, chainId, timeInterval);
   if (!collectedFees) throw new Error(`Error getting vault collected fees on ${chainId} for ${vaultAddress}`);
-  const deposits = await _getDeposits(vaultAddress, chainId, dex, timeInterval);
+  const deposits = await _getDeposits(vaultAddress, chainId, timeInterval);
   if (!deposits) throw new Error(`Error getting vault deposits on ${chainId} for ${vaultAddress}`);
-  const withdraws = await _getWithdraws(vaultAddress, chainId, dex, timeInterval);
+  const withdraws = await _getWithdraws(vaultAddress, chainId, timeInterval);
   if (!withdraws) throw new Error(`Error getting vault withdraws on ${chainId} for ${vaultAddress}`);
 
   const arrRebalances = rebalances
@@ -226,10 +225,10 @@ export async function getVaultEventsForTimeInterval(
     );
   const currentVaultEvent = {
     atTimestamp: Math.floor(Date.now() / 1000).toString(),
-    dtr: await getCurrentDtr(vaultAddress, jsonProvider, dex, isVaultInverted, token0Decimals, token1Decimals),
+    dtr: await getCurrentDtr(vaultAddress, jsonProvider, isVaultInverted, token0Decimals, token1Decimals),
     tvl: (await getVaultTvl(vault, jsonProvider, isVaultInverted, token0Decimals, token1Decimals)).tvl,
     feeAmount: 0,
-    lpPrice: await getCurrLpPrice(vault, jsonProvider, dex, chainId, isVaultInverted, token0Decimals, token1Decimals),
+    lpPrice: await getCurrLpPrice(vault, jsonProvider, chainId, isVaultInverted, token0Decimals, token1Decimals),
     poolPrice: await getCurrPrice(vault, jsonProvider, isVaultInverted, token0Decimals, token1Decimals),
   } as VaultEvent;
 

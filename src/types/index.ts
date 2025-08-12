@@ -11,10 +11,6 @@ export enum SupportedChainId {
   BaseSepolia = 84532,
 }
 
-export enum SupportedDex {
-  CLAMM = 'CLAMM',
-}
-
 export const algebraVaultDecimals = 18;
 
 export type TotalAmountsBN = [BigNumber, BigNumber] & { total0: BigNumber; total1: BigNumber };

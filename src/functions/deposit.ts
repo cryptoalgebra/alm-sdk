@@ -4,7 +4,7 @@ import { MaxUint256 } from '@ethersproject/constants';
 import { BigNumber } from 'ethers';
 import { getAlgebraVaultDepositGuardContract, getERC20Contract, getAlgebraVaultContract } from '../contracts';
 import parseBigInt from '../utils/parseBigInt';
-import { SupportedDex, SupportedChainId, AlgebraVault } from '../types';
+import { SupportedChainId, AlgebraVault } from '../types';
 import { calculateGasMargin, getGasLimit } from '../types/calculateGasMargin';
 // eslint-disable-next-line import/no-cycle
 import { getAlgebraVaultInfo, validateVaultData } from './vault';
@@ -17,15 +17,14 @@ export async function isTokenAllowed(
   tokenIdx: 0 | 1,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
 ): Promise<boolean> {
   const { chainId } = await jsonProvider.getNetwork();
   if (!Object.values(SupportedChainId).includes(chainId)) {
     throw new Error(`Unsupported chainId: ${chainId}`);
   }
 
-  const vault = await getAlgebraVaultInfo(chainId, dex, vaultAddress, jsonProvider);
-  if (!vault) throw new Error(`Vault ${vaultAddress} not found on chain ${chainId} and dex ${dex}`);
+  const vault = await getAlgebraVaultInfo(chainId, vaultAddress, jsonProvider);
+  if (!vault) throw new Error(`Vault ${vaultAddress} not found on chain ${chainId}`);
 
   const tokenAllowed = vault[tokenIdx === 0 ? 'allowTokenA' : 'allowTokenB'];
 
@@ -40,12 +39,11 @@ async function _isDepositTokenApproved(
   vault: AlgebraVault,
   chainId: SupportedChainId,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
 ): Promise<boolean> {
   const token = vault[tokenIdx === 0 ? 'tokenA' : 'tokenB'];
 
   const tokenContract = getERC20Contract(token, jsonProvider);
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress ?? '';
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress ?? '';
   const currentAllowanceBN = await tokenContract.allowance(accountAddress, depositGuardAddress);
   const tokenDecimals = await tokenContract.decimals();
 
@@ -60,10 +58,9 @@ export async function isDepositTokenApproved(
   amount: string | number | BigNumber,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
 ): Promise<boolean> {
-  const { vault, chainId } = await validateVaultData(vaultAddress, jsonProvider, dex);
-  return _isDepositTokenApproved(accountAddress, tokenIdx, amount, vault, chainId, jsonProvider, dex);
+  const { vault, chainId } = await validateVaultData(vaultAddress, jsonProvider);
+  return _isDepositTokenApproved(accountAddress, tokenIdx, amount, vault, chainId, jsonProvider);
 }
 
 export async function approveDepositToken(
@@ -71,11 +68,10 @@ export async function approveDepositToken(
   tokenIdx: 0 | 1,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   amount?: string | number | BigNumber,
   overrides?: Overrides,
 ): Promise<ContractTransaction> {
-  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
+  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider);
 
   const signer = jsonProvider.getSigner(accountAddress);
 
@@ -91,7 +87,7 @@ export async function approveDepositToken(
       : parseBigInt(amount, +tokenDecimals || 18)
     : MaxUint256;
 
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress ?? '';
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress ?? '';
   const gasLimit =
     overrides?.gasLimit ?? calculateGasMargin(await tokenContract.estimateGas.approve(depositGuardAddress, amountBN));
 
@@ -115,9 +111,8 @@ export async function getMaxDepositAmount(
   tokenIdx: 0 | 1,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
 ): Promise<BigNumber> {
-  await validateVaultData(vaultAddress, jsonProvider, dex);
+  await validateVaultData(vaultAddress, jsonProvider);
 
   const maxDepositAmount = _getMaxDepositAmount(tokenIdx, vaultAddress, jsonProvider);
 
@@ -130,14 +125,13 @@ export async function deposit(
   amount1: string | number | BigNumber,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   percentSlippage = 1,
   overrides?: Overrides,
 ): Promise<ContractTransaction> {
-  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
+  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider);
   const signer = jsonProvider.getSigner(accountAddress);
-  console.log('finding vault deployer for: ', vaultAddress, chainId, dex);
-  const vaultDeployerAddress = getVaultDeployer(vaultAddress, chainId, dex);
+  console.log('finding vault deployer for: ', vaultAddress, chainId);
+  const vaultDeployerAddress = getVaultDeployer(vaultAddress, chainId);
 
   const token0 = vault.tokenA;
   const token1 = vault.tokenB;
@@ -163,15 +157,7 @@ export async function deposit(
   }
   const amountBN = isToken0Allowed ? amount0BN : amount1BN;
 
-  const isApproved = await _isDepositTokenApproved(
-    accountAddress,
-    tokenIndex,
-    amountBN,
-    vault,
-    chainId,
-    jsonProvider,
-    dex,
-  );
+  const isApproved = await _isDepositTokenApproved(accountAddress, tokenIndex, amountBN, vault, chainId, jsonProvider);
   if (!isApproved) {
     throw new Error(`Deposit is not approved for token: ${depositToken}, chain ${chainId}, vault ${vaultAddress}`);
   }
@@ -190,7 +176,7 @@ export async function deposit(
   }
 
   // obtain Deposit Guard contract
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress ?? '';
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress ?? '';
   const depositGuardContract = getAlgebraVaultDepositGuardContract(depositGuardAddress, signer);
   const maxGasLimit = getGasLimit();
 
@@ -248,17 +234,16 @@ export async function depositNativeToken(
   amount1: string | number | BigNumber,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   percentSlippage = 1,
   overrides?: Overrides,
 ): Promise<ContractTransaction> {
-  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
+  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider);
   // if (chainId === SupportedChainId.celo) {
   //   throw new Error(`This function is not supported on chain ${chainId}`);
   // }
 
   const signer = jsonProvider.getSigner(accountAddress);
-  const vaultDeployerAddress = getVaultDeployer(vaultAddress, chainId, dex);
+  const vaultDeployerAddress = getVaultDeployer(vaultAddress, chainId);
 
   const token0 = vault.tokenA;
   const token1 = vault.tokenB;
@@ -284,9 +269,9 @@ export async function depositNativeToken(
   }
 
   // obtain Deposit Guard contract
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]![dex]?.depositGuardAddress;
+  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress;
   if (!depositGuardAddress) {
-    throw new Error(`Deposit Guard not found for vault ${vaultAddress} on chain ${chainId} and dex ${dex}`);
+    throw new Error(`Deposit Guard not found for vault ${vaultAddress} on chain ${chainId}`);
   }
   const depositGuardContract = getAlgebraVaultDepositGuardContract(depositGuardAddress, signer);
   const wrappedNative = await depositGuardContract.WRAPPED_NATIVE();

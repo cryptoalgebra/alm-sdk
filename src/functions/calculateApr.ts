@@ -1,14 +1,6 @@
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from 'ethers';
-import {
-  AlgebraVault,
-  PriceChange,
-  SupportedDex,
-  TotalAmountsBN,
-  VaultApr,
-  VaultState,
-  algebraVaultDecimals,
-} from '../types';
+import { AlgebraVault, PriceChange, TotalAmountsBN, VaultApr, VaultState, algebraVaultDecimals } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
 import { getTokenDecimals } from './_totalBalances';
@@ -54,13 +46,12 @@ export function getLpPriceAt(
 export async function getLpApr(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   vault: AlgebraVault,
   token0Decimals: number,
   token1Decimals: number,
   // timeIntervals?: number[],
 ): Promise<{ aprs: (VaultApr | null)[]; vault: AlgebraVault; tvl: number; totalAmounts: TotalAmountsBN }> {
-  const key = `lpApr-${dex}-${vaultAddress}`;
+  const key = `lpApr-${vaultAddress}`;
   const cachedData = cache.get(key);
   if (cachedData) {
     return cachedData as { aprs: (VaultApr | null)[]; vault: AlgebraVault; tvl: number; totalAmounts: TotalAmountsBN };
@@ -108,30 +99,29 @@ export async function getLpApr(
 export async function getLpPriceChange(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   timeIntervals?: number[],
 ): Promise<(PriceChange | null)[]> {
-  const key = `lpPriceChange-${dex}-${vaultAddress}`;
+  const key = `lpPriceChange-${vaultAddress}`;
   const cachedData = cache.get(key);
   if (cachedData) {
     return cachedData as (PriceChange | null)[];
   }
   const ttl = 30 * 60 * 1000;
 
-  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
-  getGraphUrls(chainId, dex, true);
+  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider);
+  getGraphUrls(chainId, true);
 
   const decimals0 = await getTokenDecimals(vault.tokenA, jsonProvider, chainId);
   const decimals1 = await getTokenDecimals(vault.tokenB, jsonProvider, chainId);
   const isInv = vault.allowTokenB;
 
-  const currLpPrice = await getCurrLpPrice(vault, jsonProvider, dex, chainId, isInv, decimals0, decimals1);
+  const currLpPrice = await getCurrLpPrice(vault, jsonProvider, chainId, isInv, decimals0, decimals1);
 
   const arrDays = timeIntervals && timeIntervals.length > 0 ? timeIntervals : [1, 7, 30];
   const maxDays = Math.max(...arrDays) + 30;
 
   const result = [] as PriceChange[];
-  const vaultEvents = await _getAllVaultEvents(vaultAddress, chainId, dex, maxDays);
+  const vaultEvents = await _getAllVaultEvents(vaultAddress, chainId, maxDays);
   arrDays.forEach((d) => {
     const objLpPrice = getLpPriceAt(vaultEvents, d, isInv, decimals0, decimals1);
     const prevLpPrice = objLpPrice?.priceChange;

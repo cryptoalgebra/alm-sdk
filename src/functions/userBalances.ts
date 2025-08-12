@@ -8,7 +8,6 @@ import { request } from 'graphql-request';
 import { formatUnits } from '@ethersproject/units';
 import { getAlgebraVaultContract } from '../contracts';
 import {
-  SupportedDex,
   UserAmounts,
   UserAmountsBN,
   UserAmountsInVault,
@@ -84,14 +83,12 @@ export async function getUserBalance(
   accountAddress: string,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
 ): Promise<string>;
 
 export async function getUserBalance(
   accountAddress: string,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   raw: true,
 ): Promise<BigNumber>;
 
@@ -99,11 +96,10 @@ export async function getUserBalance(
   accountAddress: string,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   raw?: true,
 ) {
   // eslint-disable-next-line no-return-await
-  await validateVaultData(vaultAddress, jsonProvider, dex);
+  await validateVaultData(vaultAddress, jsonProvider);
 
   return raw
     ? _getUserBalance(accountAddress, vaultAddress, jsonProvider, true)
@@ -131,24 +127,17 @@ function storeResult(key: string, result: any) {
 export async function getAllUserBalances(
   accountAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
 ): Promise<UserBalanceInVault[]>;
 
 export async function getAllUserBalances(
   accountAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   raw: true,
 ): Promise<UserBalanceInVaultBN[]>;
 
-export async function getAllUserBalances(
-  accountAddress: string,
-  jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
-  raw?: true,
-) {
+export async function getAllUserBalances(accountAddress: string, jsonProvider: JsonRpcProvider, raw?: true) {
   const { chainId } = await getChainByProvider(jsonProvider);
-  const { publishedUrl, url } = getGraphUrls(chainId, dex, true);
+  const { publishedUrl, url } = getGraphUrls(chainId, true);
 
   let shares: UserBalanceInVault[];
   const key = `${chainId + accountAddress}-balances`;
@@ -159,7 +148,7 @@ export async function getAllUserBalances(
         const result = await sendUserBalancesQueryRequest(publishedUrl, accountAddress, strUserBalancesQuery);
         storeResult(key, result);
       } else {
-        throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
+        throw new Error(`Published URL is invalid on chain ${chainId}`);
       }
     } catch (error) {
       if (publishedUrl) {
@@ -198,7 +187,6 @@ export async function getUserAmounts(
   accountAddress: string,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   token0Decimals: number,
   token1Decimals: number,
   raw: false,
@@ -208,7 +196,6 @@ export async function getUserAmounts(
   accountAddress: string,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   token0Decimals: number,
   token1Decimals: number,
   raw: true,
@@ -218,12 +205,11 @@ export async function getUserAmounts(
   accountAddress: string,
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
-  dex: SupportedDex,
   token0Decimals: number,
   token1Decimals: number,
   raw: boolean,
 ) {
-  const { vault } = await validateVaultData(vaultAddress, jsonProvider, dex);
+  const { vault } = await validateVaultData(vaultAddress, jsonProvider);
 
   const [totalAmounts, totalSupply, shares] = await Promise.all([
     _getTotalAmounts(vault, jsonProvider, token0Decimals, token1Decimals, true),
@@ -253,24 +239,17 @@ export async function getUserAmounts(
 export async function getAllUserAmounts(
   accountAddress: string,
   jsonProvider: Web3Provider,
-  dex: SupportedDex,
 ): Promise<UserAmountsInVault[]>;
 
 export async function getAllUserAmounts(
   accountAddress: string,
   jsonProvider: Web3Provider,
-  dex: SupportedDex,
   raw: true,
 ): Promise<UserAmountsInVaultBN[]>;
 
-export async function getAllUserAmounts(
-  accountAddress: string,
-  jsonProvider: Web3Provider,
-  dex: SupportedDex,
-  raw?: true,
-) {
+export async function getAllUserAmounts(accountAddress: string, jsonProvider: Web3Provider, raw?: true) {
   const { chainId } = await getChainByProvider(jsonProvider);
-  const { publishedUrl, url } = getGraphUrls(chainId, dex, true);
+  const { publishedUrl, url } = getGraphUrls(chainId, true);
 
   const key = `${chainId + accountAddress}-all-user-amounts`;
   if (!Object.prototype.hasOwnProperty.call(promises, key)) {
@@ -280,7 +259,7 @@ export async function getAllUserAmounts(
         const result = await sendUserBalancesQueryRequest(publishedUrl, accountAddress, strUserBalancesQuery);
         storeResult(key, result);
       } else {
-        throw new Error(`Published URL is invalid for dex ${dex} on chain ${chainId}`);
+        throw new Error(`Published URL is invalid on chain ${chainId}`);
       }
     } catch (error) {
       if (publishedUrl) {
