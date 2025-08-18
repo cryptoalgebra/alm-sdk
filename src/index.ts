@@ -17,3 +17,4 @@ export * from './types/index';
 export * from './config';
 export * from './functions/calculatePnl';
 export * from './functions/vaultEvents';
+export * from './utils/getFarmingRewardsDistributorAddress';

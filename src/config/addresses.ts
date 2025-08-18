@@ -8,7 +8,7 @@ export type SupportedDexConfig = {
 // externally
 export const VAULT_DEPOSIT_GUARD: Record<SupportedChainId, string> = {
   [SupportedChainId.Base]: '0x1e18b4a180b13520bD202e571cD9dFE0A545Cc85', // clamm
-  [SupportedChainId.BaseSepolia]: '0x9E74bE17D1CeeBf1FE2856A99d6774e80bF34ec9', // integral farming + alm
+  [SupportedChainId.BaseSepolia]: '0x16396B68aC4f2c1D577694908AaE7f5AC0256995', // integral farming + alm
 };
 
 // internally
