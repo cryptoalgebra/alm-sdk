@@ -19,7 +19,7 @@ import {
 } from '../types';
 import formatBigInt from '../utils/formatBigInt';
 // eslint-disable-next-line import/no-cycle
-import { getChainByProvider, validateVaultData } from './vault';
+import { getChainByProvider } from './vault';
 import { UserBalancesQueryData } from '../types/vaultQueryData';
 import { userBalancesQuery } from '../graphql/queries';
 import parseBigInt from '../utils/parseBigInt';
@@ -99,7 +99,7 @@ export async function getUserBalance(
   raw?: true,
 ) {
   // eslint-disable-next-line no-return-await
-  await validateVaultData(vaultAddress, jsonProvider);
+  // await validateVaultData(vaultAddress, jsonProvider);
 
   return raw
     ? _getUserBalance(accountAddress, vaultAddress, jsonProvider, true)
@@ -167,13 +167,19 @@ export async function getAllUserBalances(accountAddress: string, jsonProvider: J
   const balances: VaultShares[] = await promises[key];
   if (balances) {
     shares = balances.map((balance) => {
-      return { vaultAddress: balance.vault.id, shares: balance.vaultShareBalance, poolAddress: balance.vault.pool };
+      return {
+        vaultAddress: balance.vault.id,
+        shares: balance.vaultShareBalance,
+        stakedShares: balance.vaultShareStaked,
+        poolAddress: balance.vault.pool,
+      };
     });
     return raw
       ? shares.map((s) => {
           return {
             vaultAddress: s.vaultAddress,
             shares: parseBigInt(s.shares, algebraVaultDecimals),
+            stakedShares: parseBigInt(s.stakedShares, algebraVaultDecimals),
             poolAddress: s.poolAddress,
           };
         })
@@ -209,10 +215,8 @@ export async function getUserAmounts(
   token1Decimals: number,
   raw: boolean,
 ) {
-  const { vault } = await validateVaultData(vaultAddress, jsonProvider);
-
   const [totalAmounts, totalSupply, shares] = await Promise.all([
-    _getTotalAmounts(vault, jsonProvider, token0Decimals, token1Decimals, true),
+    _getTotalAmounts(vaultAddress, jsonProvider, token0Decimals, token1Decimals, true),
     _getTotalSupply(vaultAddress, jsonProvider, true),
     _getUserBalance(accountAddress, vaultAddress, jsonProvider, true),
   ]);

@@ -53,7 +53,7 @@ export async function getVaultTvl(
   token0decimals: number,
   token1decimals: number,
 ): Promise<{ tvl: number; totalAmounts: TotalAmountsBN }> {
-  const totalAmounts = await _getTotalAmounts(vault, jsonProvider, token0decimals, token1decimals, true);
+  const totalAmounts = await _getTotalAmounts(vault.id, jsonProvider, token0decimals, token1decimals, true);
   const price = await getCurrPrice(vault, jsonProvider, isVaultInverted, token0decimals, token1decimals);
   const tvl = !isVaultInverted
     ? Number(totalAmounts.total0) + Number(totalAmounts.total1) * price

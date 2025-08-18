@@ -230,6 +230,7 @@ export function userBalancesQuery() {
           pool
         }
         vaultShareBalance
+        vaultShareStaked
       }
     }
   `;

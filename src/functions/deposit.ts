@@ -130,7 +130,6 @@ export async function deposit(
 ): Promise<ContractTransaction> {
   const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider);
   const signer = jsonProvider.getSigner(accountAddress);
-  console.log('finding vault deployer for: ', vaultAddress, chainId);
   const vaultDeployerAddress = getVaultDeployer(vaultAddress, chainId);
 
   const token0 = vault.tokenA;
@@ -181,17 +180,23 @@ export async function deposit(
   const maxGasLimit = getGasLimit();
 
   // the first call: get estimated LP amount
-  let lpAmount = await depositGuardContract.callStatic.forwardDepositToAlgebraVault(
-    vaultAddress,
-    vaultDeployerAddress,
-    depositToken,
-    depositAmount,
-    BigNumber.from(0),
-    accountAddress,
-    {
-      gasLimit: maxGasLimit,
-    },
-  );
+  let lpAmount = BigNumber.from(0);
+
+  try {
+    lpAmount = await depositGuardContract.callStatic.forwardDepositToAlgebraVault(
+      vaultAddress,
+      vaultDeployerAddress,
+      depositToken,
+      depositAmount,
+      BigNumber.from(0),
+      accountAddress,
+      {
+        gasLimit: maxGasLimit,
+      },
+    );
+  } catch (error) {
+    console.error('Error while getting estimated LP amount:', error);
+  }
 
   // reduce the estimated LP amount by an acceptable slippage %, for example 1%
   if (percentSlippage < 0.01) throw new Error('Slippage parameter is less than 0.01%.');

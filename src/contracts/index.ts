@@ -11,6 +11,8 @@ import {
   AlgebraVaultDepositGuard,
   AlgebraVault__factory,
   AlgebraVault,
+  FarmingRewardsDistributor__factory,
+  FarmingRewardsDistributor,
 } from '../../abis/types';
 
 export function getERC20Contract(address: string, signerOrProvider: SignerOrProvider): ERC20 {
@@ -36,6 +38,18 @@ export function getAlgebraPoolContract(address: string, provider: JsonRpcProvide
     return AlgebraPool__factory.connect(address, provider);
   } catch (e) {
     console.error(`Couldn't create AlgebraPool contract with address: ${address}`);
+    throw e;
+  }
+}
+
+export function getFarmingRewardsDistributorContract(
+  address: string,
+  signerOrProvider: SignerOrProvider,
+): FarmingRewardsDistributor {
+  try {
+    return FarmingRewardsDistributor__factory.connect(address, signerOrProvider);
+  } catch (e) {
+    console.error(`Couldn't create FarmingRewardsDistributor contract with address: ${address}`);
     throw e;
   }
 }

@@ -161,7 +161,7 @@ export async function getExtendedAlgebraVault(
   try {
     const vault = await getAlgebraVaultInfo(chainId, vaultAddress, jsonProvider);
 
-    const totalAmounts = await _getTotalAmounts(vault, jsonProvider, token0Decimals, token1Decimals, true);
+    const totalAmounts = await _getTotalAmounts(vaultAddress, jsonProvider, token0Decimals, token1Decimals, true);
 
     const { url } = getGraphUrls(chainId);
     const { almVault } = await sendFeeAprQueryRequest(url, vaultAddress);

@@ -13,7 +13,7 @@ export const graphUrls: Record<SupportedChainId, GraphQL> = {
     publishedUrl: 'https://api.studio.thegraph.com/query/50593/clamm-alm/version/latest',
   },
   [SupportedChainId.BaseSepolia]: {
-    url: 'https://api.studio.thegraph.com/query/50593/base-testnet-alm/version/latest',
-    publishedUrl: 'https://api.studio.thegraph.com/query/50593/base-testnet-alm/version/latest',
+    url: 'https://api.studio.thegraph.com/query/50593/base-sepolia-alm/v0.0.6',
+    publishedUrl: 'https://api.studio.thegraph.com/query/50593/base-sepolia-alm/v0.0.6',
   },
 };
