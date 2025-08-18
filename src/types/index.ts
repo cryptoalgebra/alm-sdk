@@ -48,6 +48,7 @@ export type VaultShares = {
     pool: string;
   };
   vaultShareBalance: string;
+  vaultShareStaked: string;
 };
 export type UserBalances = {
   vaultShares: VaultShares[];
@@ -124,11 +125,13 @@ export type UserBalanceInVault = {
   vaultAddress: string;
   poolAddress: string;
   shares: string;
+  stakedShares: string;
 };
 export type UserBalanceInVaultBN = {
   vaultAddress: string;
   poolAddress: string;
   shares: BigNumber;
+  stakedShares: BigNumber;
 };
 
 export type VaultMetrics = {

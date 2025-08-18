@@ -5,7 +5,7 @@
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from 'ethers';
 import { getERC20Contract, getAlgebraVaultContract } from '../contracts';
-import { AlgebraVault, SupportedChainId, TotalAmounts, TotalAmountsBN, algebraVaultDecimals } from '../types';
+import { SupportedChainId, TotalAmounts, TotalAmountsBN, algebraVaultDecimals } from '../types';
 import formatBigInt from '../utils/formatBigInt';
 // eslint-disable-next-line import/no-cycle
 import cache from '../utils/cache';
@@ -33,7 +33,7 @@ export async function getTokenDecimals(
 }
 
 export async function _getTotalAmounts(
-  vault: AlgebraVault,
+  vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   token0Decimals: number,
   token1Decimals: number,
@@ -41,7 +41,7 @@ export async function _getTotalAmounts(
 ): Promise<TotalAmounts>;
 
 export async function _getTotalAmounts(
-  vault: AlgebraVault,
+  vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   token0Decimals: number,
   token1Decimals: number,
@@ -49,13 +49,13 @@ export async function _getTotalAmounts(
 ): Promise<TotalAmountsBN>;
 
 export async function _getTotalAmounts(
-  vault: AlgebraVault,
+  vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   token0Decimals: number,
   token1Decimals: number,
   raw?: boolean,
 ) {
-  const vaultContract = getAlgebraVaultContract(vault.id, jsonProvider);
+  const vaultContract = getAlgebraVaultContract(vaultAddress, jsonProvider);
   const totalAmountsBN = await vaultContract.getTotalAmounts();
 
   if (!raw) {

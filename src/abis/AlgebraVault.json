@@ -17,11 +17,6 @@
         "type": "bool"
       },
       {
-        "internalType": "address",
-        "name": "__owner",
-        "type": "address"
-      },
-      {
         "internalType": "uint32",
         "name": "_twapPeriod",
         "type": "uint32"
@@ -34,6 +29,56 @@
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "AlgebraDisconnectedPlugin",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "EmptyVault",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "IdenticalPositions",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidDeposit",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidPosition",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotManager",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotRebalancer",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "TokensOwed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroValue",
+    "type": "error"
   },
   {
     "anonymous": false,
@@ -152,12 +197,6 @@
       },
       {
         "indexed": false,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "indexed": false,
         "internalType": "uint256",
         "name": "twapPeriod",
         "type": "uint256"
@@ -239,12 +278,12 @@
       },
       {
         "indexed": false,
-        "internalType": "uint256",
-        "name": "hysteresis",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "farmingContract",
+        "type": "address"
       }
     ],
-    "name": "Hysteresis",
+    "name": "FarmingContract",
     "type": "event"
   },
   {
@@ -253,17 +292,17 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "previousOwner",
+        "name": "sender",
         "type": "address"
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "hysteresis",
+        "type": "uint256"
       }
     ],
-    "name": "OwnershipTransferred",
+    "name": "Hysteresis",
     "type": "event"
   },
   {
@@ -307,6 +346,44 @@
       }
     ],
     "name": "Rebalance",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "rebalanceManager",
+        "type": "address"
+      }
+    ],
+    "name": "RebalanceManager",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "reward",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "bonusReward",
+        "type": "uint256"
+      }
+    ],
+    "name": "RewardsCollected",
     "type": "event"
   },
   {
@@ -449,7 +526,7 @@
       },
       {
         "internalType": "bytes",
-        "name": "data",
+        "name": "",
         "type": "bytes"
       }
     ],
@@ -649,6 +726,13 @@
   },
   {
     "inputs": [],
+    "name": "collectRewards",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "currentTick",
     "outputs": [
       {
@@ -747,6 +831,19 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "farmingRewardsDistributor",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -920,19 +1017,6 @@
   },
   {
     "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "pool",
     "outputs": [
       {
@@ -979,16 +1063,15 @@
   },
   {
     "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "resetAllowances",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "name": "rebalanceManager",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -1051,12 +1134,38 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "_farmingRewardsDistributor",
+        "type": "address"
+      }
+    ],
+    "name": "setFarmingRewardsDistributor",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "_hysteresis",
         "type": "uint256"
       }
     ],
     "name": "setHysteresis",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_rebalanceManager",
+        "type": "address"
+      }
+    ],
+    "name": "setRebalanceManager",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1189,19 +1298,6 @@
         "type": "bool"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "transferOwnership",
-    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },

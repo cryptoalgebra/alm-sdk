@@ -11,6 +11,8 @@ export * from './functions/vaultMetrics';
 export * from './functions/vaultTvl';
 export * from './functions/vaultPositions';
 export * from './functions/getFeeAprs';
+export * from './functions/farmingActions';
+export * from './functions/farmingBalances';
 export * from './types/index';
 export * from './config';
 export * from './functions/calculatePnl';
