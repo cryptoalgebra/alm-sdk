@@ -1,5 +1,3 @@
-// Removed bigint from ethers - using native bigint;
-
 // @ts-ignore
 const univ3prices = require('@thanpolas/univ3prices');
 

@@ -1,5 +1,3 @@
-// Removed bigint from @ethersproject/bignumber - using native bigint;
-
 const defaultGasLimit = 5e6;
 // const mantleGasLimit = 3e9;
 

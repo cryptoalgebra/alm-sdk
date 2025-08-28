@@ -2,7 +2,6 @@
 /* eslint-disable import/prefer-default-export */
 
 import { JsonRpcProvider } from 'ethers';
-// Removed bigint from @ethersproject/bignumber - using native bigint;
 import { parseUnits } from 'ethers';
 import { AverageDepositTokenRatio, DepositTokenRatio, VaultState, VaultTransactionEvent } from '../types';
 // eslint-disable-next-line import/no-cycle

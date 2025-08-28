@@ -3,7 +3,6 @@
 /* eslint-disable no-underscore-dangle */
 
 import { JsonRpcProvider } from 'ethers';
-// Removed bigint from ethers - using native bigint;
 import { getERC20Contract, getAlgebraVaultContract } from '../contracts';
 import { AlgebraVault, SupportedChainId, TotalAmounts, TotalAmountsBN, algebraVaultDecimals } from '../types';
 import formatBigInt from '../utils/formatBigInt';

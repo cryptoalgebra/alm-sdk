@@ -2,7 +2,6 @@
 /* eslint-disable import/prefer-default-export */
 
 import { JsonRpcProvider } from 'ethers';
-// Removed bigint from ethers - using native bigint;
 import { TotalAmounts, TotalAmountsBN } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';

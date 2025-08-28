@@ -3,7 +3,6 @@
 /* eslint-disable import/no-cycle */
 
 import { JsonRpcProvider } from 'ethers';
-// Removed bigint from @ethersproject/bignumber - using native bigint;
 import { Fees, FeesInfo, TotalAmounts, TotalAmountsBN, VaultState } from '../types';
 import { validateVaultData } from './vault';
 import { getTokenDecimals } from './_totalBalances';

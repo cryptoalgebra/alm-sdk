@@ -1,5 +1,4 @@
 import { JsonRpcProvider } from 'ethers';
-// Removed bigint from ethers - using native bigint;
 import cache from '../utils/cache';
 import formatBigInt from '../utils/formatBigInt';
 // eslint-disable-next-line import/no-cycle

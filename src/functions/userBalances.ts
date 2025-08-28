@@ -2,7 +2,6 @@
 /* eslint-disable import/prefer-default-export */
 
 import { JsonRpcProvider, BrowserProvider } from 'ethers';
-// Removed bigint from ethers - using native bigint;
 // eslint-disable-next-line import/no-unresolved
 import { request } from 'graphql-request';
 import { formatUnits } from 'ethers';

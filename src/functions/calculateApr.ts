@@ -1,5 +1,4 @@
 import { JsonRpcProvider } from 'ethers';
-// Removed bigint from ethers - using native bigint;
 import { AlgebraVault, PriceChange, TotalAmountsBN, VaultApr, VaultState, algebraVaultDecimals } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';

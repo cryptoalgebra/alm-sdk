@@ -2,7 +2,6 @@
 /* eslint-disable import/prefer-default-export */
 
 import { JsonRpcProvider } from 'ethers';
-// Removed bigint from @ethersproject/bignumber - using native bigint;
 import { AlgebraVault, SupportedChainId, TotalAmountsBN } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { getAlgebraVaultInfo } from './vault';
