@@ -1,5 +1,3 @@
-import { BigNumber } from 'ethers';
-
-export default function amountWithSlippage(amount: BigNumber, percentSlippage: number): BigNumber {
-  return amount.mul(Math.floor((100 - percentSlippage) * 1000)).div(100000);
+export default function amountWithSlippage(amount: bigint, percentSlippage: number): bigint {
+  return (amount * BigInt(Math.floor((100 - percentSlippage) * 1000))) / 100000n;
 }

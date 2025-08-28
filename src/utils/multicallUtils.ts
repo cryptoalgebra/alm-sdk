@@ -1,7 +1,4 @@
-import { Provider } from '@ethersproject/providers';
-import { Contract } from '@ethersproject/contracts';
-import { Interface } from '@ethersproject/abi';
-import { BigNumber, Signer } from 'ethers';
+import { Provider, Contract, Interface, Signer } from 'ethers';
 import { SupportedChainId } from '../types';
 import { MULTICALL_ADDRESSES } from '../config/addresses';
 import { getERC20Contract, getAlgebraVaultContract } from '../contracts';
@@ -15,12 +12,12 @@ interface Call {
 
 export interface Result {
   success: boolean;
-  gasUsed: BigNumber;
+  gasUsed: bigint;
   returnData: string;
 }
 
 interface MulticallResponse {
-  blockNumber: BigNumber;
+  blockNumber: bigint;
   returnData: Result[];
 }
 
@@ -38,7 +35,7 @@ export async function multicall(
   provider: Provider | Signer,
 ): Promise<Result[]> {
   const multicallContract = getMulticallContract(chainId, provider);
-  const { returnData }: MulticallResponse = await multicallContract.callStatic.multicall(calls);
+  const { returnData }: MulticallResponse = await multicallContract.multicall.staticCall(calls);
   return returnData;
 }
 
@@ -72,7 +69,7 @@ export function encodeDecimalsCall(tokenAddress: string): Call {
 export function decodeTotalAmountsResult(
   result: Result,
   vaultAddress: string,
-): { total0: BigNumber; total1: BigNumber } {
+): { total0: bigint; total1: bigint } {
   if (!result.success) {
     throw new Error('Failed to get total amounts');
   }
@@ -84,7 +81,7 @@ export function decodeTotalAmountsResult(
   };
 }
 
-export function decodeTotalSupplyResult(result: Result, vaultAddress: string): BigNumber {
+export function decodeTotalSupplyResult(result: Result, vaultAddress: string): bigint {
   if (!result.success) {
     throw new Error('Failed to get total supply');
   }

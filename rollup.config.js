@@ -2,6 +2,9 @@
 
 import typescript from '@rollup/plugin-typescript';
 import json from '@rollup/plugin-json';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import nodePolyfills from 'rollup-plugin-node-polyfills';
 import pkg from './package.json';
 
 const moduleName = pkg.name.replace(/^@.*\//, '');
@@ -28,9 +31,25 @@ export default {
       file: pkg.module,
       format: 'es',
       banner,
+      inlineDynamicImports: true,
     },
   ],
+  external: [
+    'ethers',
+    'graphql-request',
+    'bignumber.js',
+    'node-cache',
+    '@algebra/sdk',
+  ],
   plugins: [
+    resolve({
+      browser: true,
+      preferBuiltins: false,
+    }),
+    commonjs({
+      transformMixedEsModules: true,
+    }),
+    nodePolyfills(),
     typescript({
       exclude: ['tests/*.spec.ts'],
     }),

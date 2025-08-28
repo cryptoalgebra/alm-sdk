@@ -1,5 +1,5 @@
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
+import { JsonRpcProvider } from 'ethers';
+// Removed bigint from ethers - using native bigint;
 import cache from '../utils/cache';
 import formatBigInt from '../utils/formatBigInt';
 // eslint-disable-next-line import/no-cycle
@@ -9,9 +9,9 @@ import { getChainByProvider, validateVaultData } from './vault';
 import { getUserDeposits, getUserWithdraws } from './vaultEvents';
 
 interface UserPnl {
-  totalDepositAmountBN: BigNumber;
-  totalWithdrawAmountBN: BigNumber;
-  pnlBN: BigNumber;
+  totalDepositAmountBN: bigint;
+  totalWithdrawAmountBN: bigint;
+  pnlBN: bigint;
   pnl: string;
   roi: number;
 }
@@ -45,39 +45,39 @@ export async function calculateUserDepositTokenPNL(
 
     const totalDepositAmountBN = deposits.reduce((acc, deposit) => {
       const amount = getAmountsInDepositToken(
-        BigNumber.from(deposit.sqrtPrice),
-        BigNumber.from(deposit.amount0),
-        BigNumber.from(deposit.amount1),
+        BigInt(deposit.sqrtPrice),
+        BigInt(deposit.amount0),
+        BigInt(deposit.amount1),
         decimals0,
         decimals1,
         vault.allowTokenA ? 0 : 1,
       );
-      return acc.add(amount);
-    }, BigNumber.from(0));
+      return acc+(amount);
+    }, BigInt(0));
 
     const totalWithdrawAmountBN = withdraws.reduce((acc, withdraw) => {
       const amount = getAmountsInDepositToken(
-        BigNumber.from(withdraw.sqrtPrice),
-        BigNumber.from(withdraw.amount0),
-        BigNumber.from(withdraw.amount1),
+        BigInt(withdraw.sqrtPrice),
+        BigInt(withdraw.amount0),
+        BigInt(withdraw.amount1),
         decimals0,
         decimals1,
         vault.allowTokenA ? 0 : 1,
       );
-      return acc.add(amount);
-    }, BigNumber.from(0));
+      return acc+(amount);
+    }, BigInt(0));
 
     const currentSqrtPrice = await getSqrtPriceFromPool(vault, jsonProvider);
     const currentAmount = getAmountsInDepositToken(
       currentSqrtPrice,
-      BigNumber.from(currentAmount0),
-      BigNumber.from(currentAmount1),
+      BigInt(currentAmount0),
+      BigInt(currentAmount1),
       decimals0,
       decimals1,
       vault.allowTokenA ? 0 : 1,
     );
 
-    const pnlBN = totalWithdrawAmountBN.add(currentAmount).sub(totalDepositAmountBN);
+    const pnlBN = totalWithdrawAmountBN+(currentAmount)-(totalDepositAmountBN);
 
     const pnl = formatBigInt(pnlBN, vault.allowTokenA ? decimals0 : decimals1);
     const roi =

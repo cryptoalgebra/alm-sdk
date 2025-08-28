@@ -1,8 +1,8 @@
 /* eslint-disable no-redeclare */
 /* eslint-disable import/prefer-default-export */
 
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { BigNumber } from '@ethersproject/bignumber';
+import { JsonRpcProvider } from 'ethers';
+// Removed bigint from @ethersproject/bignumber - using native bigint;
 import { AlgebraVault, SupportedChainId, TotalAmountsBN } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { getAlgebraVaultInfo } from './vault';
@@ -11,7 +11,7 @@ import getPrice from '../utils/getPrice';
 import { getAlgebraPoolContract, getAlgebraVaultContract } from '../contracts';
 import { _getTotalAmounts, _getTotalSupply } from './_totalBalances';
 
-export async function getSqrtPriceFromPool(vault: AlgebraVault, jsonProvider: JsonRpcProvider): Promise<BigNumber> {
+export async function getSqrtPriceFromPool(vault: AlgebraVault, jsonProvider: JsonRpcProvider): Promise<bigint> {
   try {
     const vaultContract = getAlgebraVaultContract(vault.id, jsonProvider);
     const poolAddress: string = await vaultContract.pool();
@@ -93,7 +93,7 @@ export async function getCurrentDtr(
   token0decimals: number,
   token1decimals: number,
 ): Promise<number> {
-  const { chainId } = await jsonProvider.getNetwork();
+  const network = await jsonProvider.getNetwork(); const chainId = Number(network.chainId);
 
   if (!Object.values(SupportedChainId).includes(chainId)) {
     throw new Error(`Unsupported chainId: ${chainId ?? 'undefined'}`);

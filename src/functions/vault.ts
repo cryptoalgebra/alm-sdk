@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-unresolved
 import { request } from 'graphql-request';
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider, BrowserProvider } from 'ethers';
 import { SupportedChainId, AlgebraVault } from '../types';
 // eslint-disable-next-line import/no-cycle
 import {
@@ -169,8 +169,8 @@ export async function getExtendedAlgebraVault(
     const result = {
       ...vault,
       apr: almVault?.feeApr_1d || 0,
-      amount0: totalAmounts[0].toBigInt(),
-      amount1: totalAmounts[1].toBigInt(),
+      amount0: totalAmounts[0],
+      amount1: totalAmounts[1],
     };
     cache.set(key, result, ttl);
     return result;
@@ -299,7 +299,7 @@ export async function validateVaultData(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
 ): Promise<{ chainId: SupportedChainId; vault: AlgebraVault }> {
-  const { chainId } = await jsonProvider.getNetwork();
+  const network = await jsonProvider.getNetwork(); const chainId = Number(network.chainId);
 
   if (!Object.values(SupportedChainId).includes(chainId)) {
     throw new Error(`Unsupported chainId: ${chainId ?? 'undefined'}`);
@@ -310,8 +310,8 @@ export async function validateVaultData(
   return { chainId, vault };
 }
 
-export async function getChainByProvider(jsonProvider: JsonRpcProvider): Promise<{ chainId: SupportedChainId }> {
-  const { chainId } = await jsonProvider.getNetwork();
+export async function getChainByProvider(jsonProvider: JsonRpcProvider | BrowserProvider): Promise<{ chainId: SupportedChainId }> {
+  const network = await jsonProvider.getNetwork(); const chainId = Number(network.chainId);
 
   if (!Object.values(SupportedChainId).includes(chainId)) {
     throw new Error(`Unsupported chainId: ${chainId ?? 'undefined'}`);

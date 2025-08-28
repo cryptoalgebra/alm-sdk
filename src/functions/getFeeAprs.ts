@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider } from 'ethers';
 import { FeeAprData } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';

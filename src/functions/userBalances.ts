@@ -1,11 +1,11 @@
 /* eslint-disable no-redeclare */
 /* eslint-disable import/prefer-default-export */
 
-import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
+import { JsonRpcProvider, BrowserProvider } from 'ethers';
+// Removed bigint from ethers - using native bigint;
 // eslint-disable-next-line import/no-unresolved
 import { request } from 'graphql-request';
-import { formatUnits } from '@ethersproject/units';
+import { formatUnits } from 'ethers';
 import { getAlgebraVaultContract } from '../contracts';
 import {
   UserAmounts,
@@ -64,7 +64,7 @@ async function _getUserBalance(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   raw: true,
-): Promise<BigNumber>;
+): Promise<bigint>;
 
 // eslint-disable-next-line no-underscore-dangle
 async function _getUserBalance(
@@ -90,7 +90,7 @@ export async function getUserBalance(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   raw: true,
-): Promise<BigNumber>;
+): Promise<bigint>;
 
 export async function getUserBalance(
   accountAddress: string,
@@ -218,8 +218,8 @@ export async function getUserAmounts(
   ]);
 
   const userAmountsBN: UserAmountsBN = [
-    shares.mul(totalAmounts[0]).div(totalSupply),
-    shares.mul(totalAmounts[1]).div(totalSupply),
+    (shares * totalAmounts[0]) / totalSupply,
+    (shares * totalAmounts[1]) / totalSupply,
     shares,
   ];
 
@@ -238,16 +238,16 @@ export async function getUserAmounts(
 
 export async function getAllUserAmounts(
   accountAddress: string,
-  jsonProvider: Web3Provider,
+  jsonProvider: BrowserProvider | JsonRpcProvider,
 ): Promise<UserAmountsInVault[]>;
 
 export async function getAllUserAmounts(
   accountAddress: string,
-  jsonProvider: Web3Provider,
+  jsonProvider: BrowserProvider | JsonRpcProvider,
   raw: true,
 ): Promise<UserAmountsInVaultBN[]>;
 
-export async function getAllUserAmounts(accountAddress: string, jsonProvider: Web3Provider, raw?: true) {
+export async function getAllUserAmounts(accountAddress: string, jsonProvider: BrowserProvider | JsonRpcProvider, raw?: true) {
   const { chainId } = await getChainByProvider(jsonProvider);
   const { publishedUrl, url } = getGraphUrls(chainId, true);
 
@@ -296,9 +296,9 @@ export async function getAllUserAmounts(accountAddress: string, jsonProvider: We
       ];
     });
 
-    // Execute multicall
-    const signer = jsonProvider.getSigner(accountAddress);
-    const results = await multicall(calls, chainId, signer);
+    // Execute multicall - jsonProvider should already have the signer context
+    // For getAllUserAmounts, we pass the provider which should work for read-only operations
+    const results = await multicall(calls, chainId, jsonProvider);
 
     // Process results
     const processedResults = balances.map((share: VaultShares, index: number) => {
@@ -314,9 +314,9 @@ export async function getAllUserAmounts(accountAddress: string, jsonProvider: We
 
       const userBalance = parseBigInt(share.vaultShareBalance, algebraVaultDecimals);
 
-      if (!totalSupply.isZero()) {
-        const amount0 = userBalance.mul(totalAmounts.total0).div(totalSupply);
-        const amount1 = userBalance.mul(totalAmounts.total1).div(totalSupply);
+      if (totalSupply !== 0n) {
+        const amount0 = (userBalance * totalAmounts.total0) / totalSupply;
+        const amount1 = (userBalance * totalAmounts.total1) / totalSupply;
 
         if (!raw) {
           const userAmounts = [formatBigInt(amount0, token0Decimals), formatBigInt(amount1, token1Decimals)];
@@ -336,7 +336,7 @@ export async function getAllUserAmounts(accountAddress: string, jsonProvider: We
                 0: '0',
                 1: '0',
               }
-            : [BigNumber.from(0), BigNumber.from(0), BigNumber.from(0)],
+            : [BigInt(0), BigInt(0), BigInt(0)],
         } as UserAmountsInVault | UserAmountsInVaultBN;
       }
     });

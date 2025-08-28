@@ -1,4 +1,4 @@
-import { BigNumber } from '@ethersproject/bignumber';
+// Removed bigint from @ethersproject/bignumber - using native bigint;
 
 const defaultGasLimit = 5e6;
 // const mantleGasLimit = 3e9;
@@ -8,6 +8,6 @@ export function getGasLimit(): number {
   return defaultGasLimit;
 }
 
-export function calculateGasMargin(value: BigNumber): BigNumber {
-  return value.mul(BigNumber.from(10000 + 2000)).div(BigNumber.from(10000));
+export function calculateGasMargin(value: bigint): bigint {
+  return (value * 12000n) / 10000n;
 }

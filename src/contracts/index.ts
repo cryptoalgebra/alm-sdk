@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
-import { getAddress } from '@ethersproject/address';
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { getAddress, JsonRpcProvider } from 'ethers';
 import { SignerOrProvider } from '../types';
 import {
   ERC20__factory as ERC20Factory,

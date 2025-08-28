@@ -2,8 +2,8 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-underscore-dangle */
 
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
+import { JsonRpcProvider } from 'ethers';
+// Removed bigint from ethers - using native bigint;
 import { getERC20Contract, getAlgebraVaultContract } from '../contracts';
 import { AlgebraVault, SupportedChainId, TotalAmounts, TotalAmountsBN, algebraVaultDecimals } from '../types';
 import formatBigInt from '../utils/formatBigInt';
@@ -25,7 +25,7 @@ export async function getTokenDecimals(
     const tokenContract = getERC20Contract(tokenAddress, jsonProvider);
     const tokenDecimals = await tokenContract.decimals();
     cache.set(key, tokenDecimals, ttl);
-    return tokenDecimals;
+    return Number(tokenDecimals);
   } catch (error) {
     console.error(error);
     throw new Error(`Could not get token decimals for ${tokenAddress} on ${chainId}`);
@@ -77,7 +77,7 @@ export async function _getTotalSupply(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   raw: true,
-): Promise<BigNumber>;
+): Promise<bigint>;
 
 export async function _getTotalSupply(vaultAddress: string, jsonProvider: JsonRpcProvider, raw?: true) {
   try {

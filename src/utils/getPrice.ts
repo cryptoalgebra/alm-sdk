@@ -1,11 +1,12 @@
-import { BigNumber } from 'ethers';
+// Removed bigint from ethers - using native bigint;
 
+// @ts-ignore
 const univ3prices = require('@thanpolas/univ3prices');
 
 // calculate price/ratio in the pool
 export default function getPrice(
   isInverted: boolean,
-  sqrtPrice: BigNumber,
+  sqrtPrice: bigint,
   decimals0: number,
   decimals1: number,
   decimalPlaces = 3,

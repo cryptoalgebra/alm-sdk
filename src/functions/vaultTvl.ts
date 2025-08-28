@@ -1,8 +1,8 @@
 /* eslint-disable no-redeclare */
 /* eslint-disable import/prefer-default-export */
 
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { BigNumber } from '@ethersproject/bignumber';
+import { JsonRpcProvider } from 'ethers';
+// Removed bigint from @ethersproject/bignumber - using native bigint;
 import { DepositTokenRatio, AlgebraVault, VaultState, VaultTransactionEvent } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
@@ -52,7 +52,7 @@ function getPoolPriceAtTransactionEvent(
   const scarceTokenDecimals = isVaultInverted ? token0Decimals : token1Decimals;
   const price = getPrice(
     isVaultInverted,
-    BigNumber.from(objTransactionEvent.sqrtPrice),
+    BigInt(objTransactionEvent.sqrtPrice),
     depositTokenDecimals,
     scarceTokenDecimals,
     15,
@@ -74,7 +74,7 @@ function getTotalAmountsAtTransactionEvent(
     ? 1
     : getPrice(
         isVaultInverted,
-        BigNumber.from(objTransactionEvent.sqrtPrice),
+        BigInt(objTransactionEvent.sqrtPrice),
         depositTokenDecimals,
         scarceTokenDecimals,
         15,
@@ -83,17 +83,17 @@ function getTotalAmountsAtTransactionEvent(
     ? 1
     : getPrice(
         isVaultInverted,
-        BigNumber.from(objTransactionEvent.sqrtPrice),
+        BigInt(objTransactionEvent.sqrtPrice),
         depositTokenDecimals,
         scarceTokenDecimals,
         15,
       );
   const amount0 = beforeEvent
-    ? Number(formatBigInt(BigNumber.from(objTransactionEvent.totalAmount0BeforeEvent), token0Decimals)) * price0
-    : Number(formatBigInt(BigNumber.from(objTransactionEvent.totalAmount0), token0Decimals)) * price0;
+    ? Number(formatBigInt(BigInt(objTransactionEvent.totalAmount0BeforeEvent), token0Decimals)) * price0
+    : Number(formatBigInt(BigInt(objTransactionEvent.totalAmount0), token0Decimals)) * price0;
   const amount1 = beforeEvent
-    ? Number(formatBigInt(BigNumber.from(objTransactionEvent.totalAmount1BeforeEvent), token1Decimals)) * price1
-    : Number(formatBigInt(BigNumber.from(objTransactionEvent.totalAmount1), token1Decimals)) * price1;
+    ? Number(formatBigInt(BigInt(objTransactionEvent.totalAmount1BeforeEvent), token1Decimals)) * price1
+    : Number(formatBigInt(BigInt(objTransactionEvent.totalAmount1), token1Decimals)) * price1;
   return [amount0, amount1];
 }
 
@@ -140,7 +140,7 @@ function getLpPriceAtFeeCollectionEvent(
   token1decimals: number,
 ): number {
   const tvl = getTvlAtFeeCollectionEvent(objTransactionEvent, vault, token0decimals, token1decimals);
-  const totalSupply = Number(formatBigInt(BigNumber.from(objTransactionEvent.totalSupply), 18));
+  const totalSupply = Number(formatBigInt(BigInt(objTransactionEvent.totalSupply), 18));
   return tvl / totalSupply;
 }
 
@@ -151,7 +151,7 @@ function getLpPriceAtTransactionEvent(
   token1decimals: number,
 ): number {
   const tvl = getTvlAtTransactionEvent(objTransactionEvent, vault, token0decimals, token1decimals);
-  const totalSupply = Number(formatBigInt(BigNumber.from(objTransactionEvent.totalSupply), 18));
+  const totalSupply = Number(formatBigInt(BigInt(objTransactionEvent.totalSupply), 18));
   return tvl / totalSupply;
 }
 
