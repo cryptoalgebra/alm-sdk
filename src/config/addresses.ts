@@ -5,32 +5,25 @@ export type SupportedDexConfig = {
   vaultDeployerAddress: string;
 };
 
-const DEFAULT_VAULT_DEPLOYER = '0x00009cc27c811a3e0FdD2Fd737afCc721B67eE8e';
+const DEFAULT_VAULT_DEPLOYER = '0xDeaD1F5aF792afc125812E875A891b038f888258';
 
 // externally
 export const VAULT_DEPOSIT_GUARD: Record<SupportedChainId, string> = {
-  [SupportedChainId.Base]: '0x1e18b4a180b13520bD202e571cD9dFE0A545Cc85',
-  [SupportedChainId.BaseSepolia]: '0x6768D9cEC5e1C4f416685dBfCFa4F92E660dc129',
+  [SupportedChainId.HyperEvmMainnet]: '0x9BdBB40E595Bd5a9D198209725fd1D26348ef67f',
 };
 
 export const FARMING_REWARDS_DISTRIBUTOR: Record<SupportedChainId, string> = {
-  [SupportedChainId.Base]: '0x1e18b4a180b13520bD202e571cD9dFE0A545Cc85',
-  [SupportedChainId.BaseSepolia]: '0x6768D9cEC5e1C4f416685dBfCFa4F92E660dc129',
+  [SupportedChainId.HyperEvmMainnet]: '0x9BdBB40E595Bd5a9D198209725fd1D26348ef67f',
 };
 
 // internally
 export const addressConfig: Record<SupportedChainId, SupportedDexConfig> = {
-  [SupportedChainId.Base]: {
-    depositGuardAddress: VAULT_DEPOSIT_GUARD[SupportedChainId.Base],
-    vaultDeployerAddress: DEFAULT_VAULT_DEPLOYER,
-  },
-  [SupportedChainId.BaseSepolia]: {
-    depositGuardAddress: VAULT_DEPOSIT_GUARD[SupportedChainId.BaseSepolia],
+  [SupportedChainId.HyperEvmMainnet]: {
+    depositGuardAddress: VAULT_DEPOSIT_GUARD[SupportedChainId.HyperEvmMainnet],
     vaultDeployerAddress: DEFAULT_VAULT_DEPLOYER,
   },
 };
 
 export const MULTICALL_ADDRESSES: Partial<Record<SupportedChainId, string>> = {
-  [SupportedChainId.Base]: '0x091e99cb1C49331a94dD62755D168E941AbD0693',
-  [SupportedChainId.BaseSepolia]: '0xf08e7861984cb4d2ba8b69e3c4ae20443dfa3c31',
+  [SupportedChainId.HyperEvmMainnet]: '0x1094487796e6b8A24A587456Dbac00f13Fc00c8C',
 };

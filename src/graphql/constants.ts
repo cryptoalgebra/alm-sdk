@@ -8,12 +8,8 @@ type GraphQL = {
 
 // 'none' indicates that graph is not enabled on that chain
 export const graphUrls: Record<SupportedChainId, GraphQL> = {
-  [SupportedChainId.Base]: {
-    url: 'https://api.studio.thegraph.com/query/50593/clamm-alm/version/latest',
-    publishedUrl: 'https://api.studio.thegraph.com/query/50593/clamm-alm/version/latest',
-  },
-  [SupportedChainId.BaseSepolia]: {
-    url: 'https://api.studio.thegraph.com/query/50593/base-testnet-alm/version/latest',
-    publishedUrl: 'https://api.studio.thegraph.com/query/50593/base-testnet-alm/version/latest',
+  [SupportedChainId.HyperEvmMainnet]: {
+    url: 'https://api.goldsky.com/api/public/project_cmay1j7dh90w601r2hjv26a5b/subgraphs/algebra-alm/v1.0.0/gn',
+    publishedUrl: 'https://api.goldsky.com/api/public/project_cmay1j7dh90w601r2hjv26a5b/subgraphs/algebra-alm/v1.0.0/gn',
   },
 };

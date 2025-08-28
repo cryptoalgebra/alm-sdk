@@ -7,8 +7,7 @@ import { BigNumber } from 'ethers';
 export type SignerOrProvider = Signer | Provider;
 
 export enum SupportedChainId {
-  Base = 8453,
-  BaseSepolia = 84532,
+  HyperEvmMainnet = 999
 }
 
 export const algebraVaultDecimals = 18;
