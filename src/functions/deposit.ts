@@ -193,7 +193,9 @@ export async function deposit(
   // reduce the estimated LP amount by an acceptable slippage %, for example 1%
   if (percentSlippage < 0.01) throw new Error('Slippage parameter is less than 0.01%.');
   if (percentSlippage > 100) throw new Error('Slippage parameter is more than 100%.');
-  lpAmount = (lpAmount * BigInt(Math.floor((100 - percentSlippage) * 1000))) / 100000n;
+  // Calculate slippage multiplier as a number first, then convert to BigInt
+  const slippageMultiplier = Math.floor((100 - percentSlippage) * 1000);
+  lpAmount = (lpAmount * BigInt(slippageMultiplier)) / 100000n;
 
   const gasLimit =
     overrides?.gasLimit ??
