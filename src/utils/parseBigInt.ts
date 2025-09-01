@@ -1,6 +1,4 @@
-import { BigNumber } from '@ethersproject/bignumber';
-
-export default function parseBigInt(_value: number | string, decimals: number): BigNumber {
+export default function parseBigInt(_value: number | string, decimals: number): bigint {
   let valueStr = _value.toString();
 
   // Handle scientific notation by converting to a full decimal string
@@ -12,7 +10,7 @@ export default function parseBigInt(_value: number | string, decimals: number): 
 
   const combined = wholePart + fractionalPart.padEnd(decimals, '0');
 
-  const bigNumberValue = BigNumber.from(combined);
+  const bigIntValue = BigInt(combined);
 
-  return bigNumberValue;
+  return bigIntValue;
 }

@@ -1,8 +1,7 @@
 /* eslint-disable no-redeclare */
 /* eslint-disable import/prefer-default-export */
 
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
+import { JsonRpcProvider } from 'ethers';
 import { TotalAmounts, TotalAmountsBN } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
@@ -45,7 +44,7 @@ export async function getTotalSupply(
   vaultAddress: string,
   jsonProvider: JsonRpcProvider,
   raw: true,
-): Promise<BigNumber>;
+): Promise<bigint>;
 
 export async function getTotalSupply(vaultAddress: string, jsonProvider: JsonRpcProvider, raw?: true) {
   await validateVaultData(vaultAddress, jsonProvider);

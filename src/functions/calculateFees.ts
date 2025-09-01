@@ -2,8 +2,7 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable import/no-cycle */
 
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { BigNumber } from '@ethersproject/bignumber';
+import { JsonRpcProvider } from 'ethers';
 import { Fees, FeesInfo, TotalAmounts, TotalAmountsBN, VaultState } from '../types';
 import { validateVaultData } from './vault';
 import { getTokenDecimals } from './_totalBalances';
@@ -15,12 +14,12 @@ import { getVaultTvl } from './priceFromPool';
 import getGraphUrls from '../utils/getGraphUrls';
 import { _getFeesCollectedEvents, _getRebalances } from './_vaultEvents';
 
-function getCollectedTokenAmountBN(ind: 0 | 1, feesDataset: Fees[]): BigNumber {
+function getCollectedTokenAmountBN(ind: 0 | 1, feesDataset: Fees[]): bigint {
   const amounts =
     ind === 0
-      ? feesDataset.map((r) => BigNumber.from(r.feeAmount0))
-      : feesDataset.map((r) => BigNumber.from(r.feeAmount1));
-  const amountBN = amounts.reduce((total, curr) => total.add(curr), BigNumber.from(0));
+      ? feesDataset.map((r) => BigInt(r.feeAmount0))
+      : feesDataset.map((r) => BigInt(r.feeAmount1));
+  const amountBN = amounts.reduce((total, curr) => total + curr, BigInt(0));
   return amountBN;
 }
 
@@ -34,12 +33,12 @@ export function getTotalAmountsAtFeeCollectionEvent(
   const scarceTokenDecimals = isVaultInverted ? token0Decimals : token1Decimals;
   const price0 = !isVaultInverted
     ? 1
-    : getPrice(isVaultInverted, BigNumber.from(objFees.sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
+    : getPrice(isVaultInverted, BigInt(objFees.sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
   const price1 = isVaultInverted
     ? 1
-    : getPrice(isVaultInverted, BigNumber.from(objFees.sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
-  const amount0 = Number(formatBigInt(BigNumber.from(objFees.totalAmount0), token0Decimals)) * price0;
-  const amount1 = Number(formatBigInt(BigNumber.from(objFees.totalAmount1), token1Decimals)) * price1;
+    : getPrice(isVaultInverted, BigInt(objFees.sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
+  const amount0 = Number(formatBigInt(BigInt(objFees.totalAmount0), token0Decimals)) * price0;
+  const amount1 = Number(formatBigInt(BigInt(objFees.totalAmount1), token1Decimals)) * price1;
   return [amount0, amount1];
 }
 
@@ -53,12 +52,12 @@ export function getFeesAmountInBaseTokens(
   const scarceTokenDecimals = isVaultInverted ? token0Decimals : token1Decimals;
   const price0 = !isVaultInverted
     ? 1
-    : getPrice(isVaultInverted, BigNumber.from(objFees.sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
+    : getPrice(isVaultInverted, BigInt(objFees.sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
   const price1 = isVaultInverted
     ? 1
-    : getPrice(isVaultInverted, BigNumber.from(objFees.sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
-  const amount0 = Number(formatBigInt(BigNumber.from(objFees.feeAmount0), token0Decimals)) * price0;
-  const amount1 = Number(formatBigInt(BigNumber.from(objFees.feeAmount1), token1Decimals)) * price1;
+    : getPrice(isVaultInverted, BigInt(objFees.sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
+  const amount0 = Number(formatBigInt(BigInt(objFees.feeAmount0), token0Decimals)) * price0;
+  const amount1 = Number(formatBigInt(BigInt(objFees.feeAmount1), token1Decimals)) * price1;
   return amount0 + amount1;
 }
 
@@ -106,8 +105,8 @@ export async function getFeesCollected(
   const collectedFees = await _getFeesCollectedEvents(vaultAddress, chainId, numOfDays);
   if (!collectedFees) throw new Error(`Error getting vault collected fees on ${chainId} for ${vaultAddress}`);
 
-  const amount0BN = getCollectedTokenAmountBN(0, rebalances).add(getCollectedTokenAmountBN(0, collectedFees));
-  const amount1BN = getCollectedTokenAmountBN(1, rebalances).add(getCollectedTokenAmountBN(1, collectedFees));
+  const amount0BN = getCollectedTokenAmountBN(0, rebalances)+(getCollectedTokenAmountBN(0, collectedFees));
+  const amount1BN = getCollectedTokenAmountBN(1, rebalances)+(getCollectedTokenAmountBN(1, collectedFees));
 
   const feeAmountsBN = {
     total0: amount0BN,
@@ -162,8 +161,8 @@ export async function getFeesCollectedInfo(
     const arrOtherFees = collectedFees
       .slice()
       .filter((r) => Number(r.createdAtTimestamp) * 1000 > Date.now() - daysToMilliseconds(dayPeriod));
-    const amount0BN = getCollectedTokenAmountBN(0, arrRebalances).add(getCollectedTokenAmountBN(0, arrOtherFees));
-    const amount1BN = getCollectedTokenAmountBN(1, arrRebalances).add(getCollectedTokenAmountBN(1, arrOtherFees));
+    const amount0BN = getCollectedTokenAmountBN(0, arrRebalances)+(getCollectedTokenAmountBN(0, arrOtherFees));
+    const amount1BN = getCollectedTokenAmountBN(1, arrRebalances)+(getCollectedTokenAmountBN(1, arrOtherFees));
     const totalFeesAmount =
       getTotalFeesAmountInBaseTokens(arrRebalances, token0Decimals, token1Decimals, isVaultInverted) +
       getTotalFeesAmountInBaseTokens(arrOtherFees, token0Decimals, token1Decimals, isVaultInverted);

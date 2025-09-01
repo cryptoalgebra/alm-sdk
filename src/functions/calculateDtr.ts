@@ -1,9 +1,8 @@
 /* eslint-disable no-redeclare */
 /* eslint-disable import/prefer-default-export */
 
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { BigNumber } from '@ethersproject/bignumber';
-import { parseUnits } from '@ethersproject/units';
+import { JsonRpcProvider } from 'ethers';
+import { parseUnits } from 'ethers';
 import { AverageDepositTokenRatio, DepositTokenRatio, VaultState, VaultTransactionEvent } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
@@ -18,23 +17,23 @@ import { _getDeposits, _getFeesCollectedEvents, _getRebalances, _getWithdraws } 
 import truncateToDecimals from '../utils/truncateToDecimals';
 
 export function getAmountsInDepositToken(
-  sqrtPrice: BigNumber,
-  amount0: BigNumber,
-  amount1: BigNumber,
+  sqrtPrice: bigint,
+  amount0: bigint,
+  amount1: bigint,
   token0Decimals: number,
   token1Decimals: number,
   depositToken: 0 | 1,
-): BigNumber {
+): bigint {
   const isVaultInverted = depositToken === 1;
 
   const depositTokenDecimals = isVaultInverted ? token1Decimals : token0Decimals;
   const scarceTokenDecimals = isVaultInverted ? token0Decimals : token1Decimals;
   const price0 = !isVaultInverted
     ? 1
-    : getPrice(isVaultInverted, BigNumber.from(sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
+    : getPrice(isVaultInverted, BigInt(sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
   const price1 = isVaultInverted
     ? 1
-    : getPrice(isVaultInverted, BigNumber.from(sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
+    : getPrice(isVaultInverted, BigInt(sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
 
   const amountInDepositToken =
     Number(formatBigInt(amount0, token0Decimals)) * price0 + Number(formatBigInt(amount1, token1Decimals)) * price1;
@@ -59,7 +58,7 @@ function getTotalAmountsAtTransactionEvent(
     ? 1
     : getPrice(
         isVaultInverted,
-        BigNumber.from(objTransactionEvent.sqrtPrice),
+        BigInt(objTransactionEvent.sqrtPrice),
         depositTokenDecimals,
         scarceTokenDecimals,
         15,
@@ -68,17 +67,17 @@ function getTotalAmountsAtTransactionEvent(
     ? 1
     : getPrice(
         isVaultInverted,
-        BigNumber.from(objTransactionEvent.sqrtPrice),
+        BigInt(objTransactionEvent.sqrtPrice),
         depositTokenDecimals,
         scarceTokenDecimals,
         15,
       );
   const amount0 = beforeEvent
-    ? Number(formatBigInt(BigNumber.from(objTransactionEvent.totalAmount0BeforeEvent), token0Decimals)) * price0
-    : Number(formatBigInt(BigNumber.from(objTransactionEvent.totalAmount0), token0Decimals)) * price0;
+    ? Number(formatBigInt(BigInt(objTransactionEvent.totalAmount0BeforeEvent), token0Decimals)) * price0
+    : Number(formatBigInt(BigInt(objTransactionEvent.totalAmount0), token0Decimals)) * price0;
   const amount1 = beforeEvent
-    ? Number(formatBigInt(BigNumber.from(objTransactionEvent.totalAmount1BeforeEvent), token1Decimals)) * price1
-    : Number(formatBigInt(BigNumber.from(objTransactionEvent.totalAmount1), token1Decimals)) * price1;
+    ? Number(formatBigInt(BigInt(objTransactionEvent.totalAmount1BeforeEvent), token1Decimals)) * price1
+    : Number(formatBigInt(BigInt(objTransactionEvent.totalAmount1), token1Decimals)) * price1;
   return [amount0, amount1];
 }
 

@@ -1,8 +1,6 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-shadow */
-import { Signer } from '@ethersproject/abstract-signer';
-import { Provider } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
+import { Signer, Provider } from 'ethers';
 
 export type SignerOrProvider = Signer | Provider;
 
@@ -12,8 +10,8 @@ export enum SupportedChainId {
 
 export const algebraVaultDecimals = 18;
 
-export type TotalAmountsBN = [BigNumber, BigNumber] & { total0: BigNumber; total1: BigNumber };
-export type UserAmountsBN = [BigNumber, BigNumber, BigNumber];
+export type TotalAmountsBN = [bigint, bigint] & { total0: bigint; total1: bigint };
+export type UserAmountsBN = [bigint, bigint, bigint];
 export type TotalAmounts = [string, string, string] & { total0: string; total1: string };
 export type UserAmounts = [string, string, string];
 
@@ -127,7 +125,7 @@ export type UserBalanceInVault = {
 export type UserBalanceInVaultBN = {
   vaultAddress: string;
   poolAddress: string;
-  shares: BigNumber;
+  shares: bigint;
 };
 
 export type VaultMetrics = {

@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider } from 'ethers';
 import {
   DepositTokenRatio,
   Fees,

@@ -1,10 +1,11 @@
 // eslint-disable-next-line import/no-unresolved
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider } from 'ethers';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
 import { getAlgebraVaultContract } from '../contracts';
 import formatBigInt from '../utils/formatBigInt';
 
+// @ts-ignore
 const univ3prices = require('@thanpolas/univ3prices');
 
 export type VaultPositionsInfo = {
@@ -61,9 +62,9 @@ export async function getVaultPositions(
     ]);
     // const priceAtBaseLower = getPriceInDepositToken(isInv, tokenDecimals, baseLower);
     // const priceAtBaseUpper = getPriceInDepositToken(isInv, tokenDecimals, baseUpper);
-    const priceAtLimitLower = getPriceInDepositToken(isInv, tokenDecimals, limitLower);
-    const priceAtLimitUpper = getPriceInDepositToken(isInv, tokenDecimals, limitUpper);
-    const currentPrice = getPriceInDepositToken(isInv, tokenDecimals, currentTick);
+    const priceAtLimitLower = getPriceInDepositToken(isInv, tokenDecimals, Number(limitLower));
+    const priceAtLimitUpper = getPriceInDepositToken(isInv, tokenDecimals, Number(limitUpper));
+    const currentPrice = getPriceInDepositToken(isInv, tokenDecimals, Number(currentTick));
     // const basePositionTvl = !isInv
     //   ? Number(formatBigInt(basePosition.amount0, decimals0)) +
     //     Number(formatBigInt(basePosition.amount1, decimals1)) * currentPrice
@@ -76,7 +77,7 @@ export async function getVaultPositions(
         Number(formatBigInt(limitPosition.amount0, decimals0)) * currentPrice;
 
     return {
-      currentTick,
+      currentTick: Number(currentTick),
       currentPrice,
       positions: [
         // {
@@ -90,8 +91,8 @@ export async function getVaultPositions(
         //   positionTvl: basePositionTvl,
         // },
         {
-          tickLower: limitLower,
-          tickUpper: limitUpper,
+          tickLower: Number(limitLower),
+          tickUpper: Number(limitUpper),
           priceLower: priceAtLimitLower,
           priceUpper: priceAtLimitUpper,
           liquidity: limitPosition.liquidity.toString(),

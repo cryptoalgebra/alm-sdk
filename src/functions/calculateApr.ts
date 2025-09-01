@@ -1,5 +1,4 @@
-import { JsonRpcProvider } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
+import { JsonRpcProvider } from 'ethers';
 import { AlgebraVault, PriceChange, TotalAmountsBN, VaultApr, VaultState, algebraVaultDecimals } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
@@ -30,7 +29,7 @@ export function getLpPriceAt(
     const { totalAmount0, totalAmount1, sqrtPrice } = e;
     const formattedTotalAmount0 = formatBigInt(totalAmount0, token0decimals);
     const formattedTotalAmount1 = formatBigInt(totalAmount1, token1decimals);
-    const price = getPrice(isVaultInverted, BigNumber.from(sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
+    const price = getPrice(isVaultInverted, BigInt(sqrtPrice), depositTokenDecimals, scarceTokenDecimals, 15);
     const tvl = !isVaultInverted
       ? Number(formattedTotalAmount0) + Number(formattedTotalAmount1) * price
       : Number(formattedTotalAmount1) + Number(formattedTotalAmount0) * price;
