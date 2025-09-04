@@ -85,6 +85,7 @@ export interface VaultTransactionEvent extends VaultState {
   vault: string;
   sqrtPrice: string;
   totalSupply: string;
+  shares: string;
 }
 
 export type FeesInfo = {

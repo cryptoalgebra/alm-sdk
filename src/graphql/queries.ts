@@ -124,6 +124,7 @@ export const vaultDepositsQuery = (page: number, createdAtTimestamp?: string, us
         totalSupply
         amount0
         amount1
+        shares
       }
     }
   `;
@@ -161,6 +162,7 @@ export const vaultWithdrawsQuery = (page: number, createdAtTimestamp?: string, u
         totalSupply
         amount0
         amount1
+        shares
       }
     }
   `;

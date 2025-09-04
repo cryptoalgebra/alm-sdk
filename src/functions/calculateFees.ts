@@ -4,8 +4,8 @@
 
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from '@ethersproject/bignumber';
-import { Fees, FeesInfo, TotalAmounts, TotalAmountsBN, VaultState } from '../types';
-import { validateVaultData } from './vault';
+import { Fees, FeesInfo, TotalAmounts, TotalAmountsBN, VaultState, VaultTransactionEvent } from '../types';
+import { getChainByProvider, validateVaultData } from './vault';
 import { getTokenDecimals } from './_totalBalances';
 import formatBigInt from '../utils/formatBigInt';
 import { daysToMilliseconds } from '../utils/timestamps';
@@ -14,6 +14,7 @@ import getPrice from '../utils/getPrice';
 import { getVaultTvl } from './priceFromPool';
 import getGraphUrls from '../utils/getGraphUrls';
 import { _getFeesCollectedEvents, _getRebalances } from './_vaultEvents';
+import { getUserDeposits, getUserWithdraws } from './vaultEvents';
 
 function getCollectedTokenAmountBN(ind: 0 | 1, feesDataset: Fees[]): BigNumber {
   const amounts =
@@ -179,4 +180,92 @@ export async function getFeesCollectedInfo(
   });
 
   return result;
+}
+
+interface UserFees {
+  totalUserFees0: BigNumber;
+  totalUserFees1: BigNumber;
+  sinceTimestamp: number | null;
+}
+
+export async function getUserFeesCollected(
+  accountAddress: string,
+  vaultAddress: string,
+  jsonProvider: JsonRpcProvider,
+) {
+  const { chainId } = await getChainByProvider(jsonProvider);
+
+  try {
+    const [deposits, withdraws, rebalances, fees] = await Promise.all([
+      getUserDeposits(accountAddress, vaultAddress, chainId),
+      getUserWithdraws(accountAddress, vaultAddress, chainId),
+      _getRebalances(vaultAddress, chainId),
+      _getFeesCollectedEvents(vaultAddress, chainId),
+    ]);
+
+    const allEvents = [
+      ...deposits.map((e) => ({ ...e, type: 'deposit' })),
+      ...withdraws.map((e) => ({ ...e, type: 'withdraw' })),
+      ...rebalances.map((e) => ({ ...e, type: 'rebalance' })),
+      ...fees.map((e) => ({ ...e, type: 'collect' })),
+    ].sort((a, b) => Number(a.createdAtTimestamp) - Number(b.createdAtTimestamp));
+
+    let userShares = BigNumber.from(0);
+    let activeDepositStart: number | null = null;
+
+    let totalUserFees0 = BigNumber.from(0);
+    let totalUserFees1 = BigNumber.from(0);
+
+    const getUserPercent = (shares: BigNumber, totalSupply: BigNumber) =>
+      shares.isZero() ? BigNumber.from(0) : shares.mul(BigNumber.from(1e6)).div(totalSupply);
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const event of allEvents) {
+      switch (event.type) {
+        case 'deposit': {
+          userShares = userShares.add((event as VaultTransactionEvent).shares);
+          if (activeDepositStart === null && userShares.gt(0)) {
+            activeDepositStart = Number(event.createdAtTimestamp);
+          }
+          break;
+        }
+
+        case 'withdraw': {
+          userShares = userShares.sub((event as VaultTransactionEvent).shares);
+          if (userShares.lte(0)) {
+            activeDepositStart = null;
+          }
+          break;
+        }
+
+        case 'rebalance':
+        case 'collect': {
+          if (activeDepositStart !== null && userShares.gt(0)) {
+            const percent = getUserPercent(userShares, BigNumber.from(event.totalSupply));
+            const collected0 = BigNumber.from((event as Fees).feeAmount0 ?? 0);
+            const collected1 = BigNumber.from((event as Fees).feeAmount1 ?? 0);
+
+            totalUserFees0 = totalUserFees0.add(collected0.mul(percent).div(1e6));
+            totalUserFees1 = totalUserFees1.add(collected1.mul(percent).div(1e6));
+          } else {
+            totalUserFees0 = BigNumber.from(0);
+            totalUserFees1 = BigNumber.from(0);
+          }
+          break;
+        }
+
+        default:
+          break;
+      }
+    }
+
+    const result: UserFees = {
+      totalUserFees0,
+      totalUserFees1,
+      sinceTimestamp: activeDepositStart,
+    };
+    return result;
+  } catch (error) {
+    throw new Error(`Request failed: ${error}`);
+  }
 }
