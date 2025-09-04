@@ -39,9 +39,10 @@ export async function calculateUserDepositTokenPNL(
 
   const { vault } = await validateVaultData(vaultAddress, jsonProvider);
   try {
-    const deposits = await getUserDeposits(accountAddress, vaultAddress, chainId);
-
-    const withdraws = await getUserWithdraws(accountAddress, vaultAddress, chainId);
+    const [deposits, withdraws] = await Promise.all([
+      getUserDeposits(accountAddress, vaultAddress, chainId),
+      getUserWithdraws(accountAddress, vaultAddress, chainId),
+    ]);
 
     const totalDepositAmountBN = deposits.reduce((acc, deposit) => {
       const amount = getAmountsInDepositToken(
