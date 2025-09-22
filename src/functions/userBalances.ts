@@ -137,30 +137,19 @@ export async function getAllUserBalances(
 
 export async function getAllUserBalances(accountAddress: string, jsonProvider: JsonRpcProvider, raw?: true) {
   const { chainId } = await getChainByProvider(jsonProvider);
-  const { publishedUrl, url } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
 
   let shares: UserBalanceInVault[];
   const key = `${chainId + accountAddress}-balances`;
   if (!Object.prototype.hasOwnProperty.call(promises, key)) {
     const strUserBalancesQuery = userBalancesQuery();
+
     try {
-      if (publishedUrl) {
-        const result = await sendUserBalancesQueryRequest(publishedUrl, accountAddress, strUserBalancesQuery);
-        storeResult(key, result);
-      } else {
-        throw new Error(`Published URL is invalid on chain ${chainId}`);
-      }
-    } catch (error) {
-      if (publishedUrl) {
-        console.error('Request to published graph URL failed:', error);
-      }
-      try {
-        const result = await sendUserBalancesQueryRequest(url, accountAddress, strUserBalancesQuery);
-        storeResult(key, result);
-      } catch (error2) {
-        console.error('Request to public graph URL failed:', error2);
-        throw new Error(`Could not get user balances for ${accountAddress} on chain ${chainId}`);
-      }
+      const result = await sendUserBalancesQueryRequest(url, accountAddress, strUserBalancesQuery);
+      storeResult(key, result);
+    } catch (error2) {
+      console.error('Request to public graph URL failed:', error2);
+      throw new Error(`Could not get user balances for ${accountAddress} on chain ${chainId}`);
     }
   }
 
@@ -253,29 +242,18 @@ export async function getAllUserAmounts(
 
 export async function getAllUserAmounts(accountAddress: string, jsonProvider: Web3Provider, raw?: true) {
   const { chainId } = await getChainByProvider(jsonProvider);
-  const { publishedUrl, url } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
 
   const key = `${chainId + accountAddress}-all-user-amounts`;
   if (!Object.prototype.hasOwnProperty.call(promises, key)) {
     const strUserBalancesQuery = userBalancesQuery();
+
     try {
-      if (publishedUrl) {
-        const result = await sendUserBalancesQueryRequest(publishedUrl, accountAddress, strUserBalancesQuery);
-        storeResult(key, result);
-      } else {
-        throw new Error(`Published URL is invalid on chain ${chainId}`);
-      }
-    } catch (error) {
-      if (publishedUrl) {
-        console.error('Request to published graph URL failed:', error);
-      }
-      try {
-        const result = await sendUserBalancesQueryRequest(url, accountAddress, strUserBalancesQuery);
-        storeResult(key, result);
-      } catch (error2) {
-        console.error('Request to public graph URL failed:', error2);
-        throw new Error(`Could not get user balances for ${accountAddress} on chain ${chainId}`);
-      }
+      const result = await sendUserBalancesQueryRequest(url, accountAddress, strUserBalancesQuery);
+      storeResult(key, result);
+    } catch (error2) {
+      console.error('Request to public graph URL failed:', error2);
+      throw new Error(`Could not get user balances for ${accountAddress} on chain ${chainId}`);
     }
   }
 

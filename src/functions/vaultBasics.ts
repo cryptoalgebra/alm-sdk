@@ -1,8 +1,8 @@
 import { SupportedChainId } from '../types';
-import { addressConfig } from '../config/addresses';
+import { VAULT_DEPLOYER } from '../config/addresses';
 
 export default function getVaultDeployer(vaultAddress: string, chainId: SupportedChainId): string {
-  const vaultDeployerAddress = addressConfig[chainId]?.vaultDeployerAddress;
+  const vaultDeployerAddress = VAULT_DEPLOYER[chainId as SupportedChainId];
 
   // const polVaults = [
   //   '0x4aef5144131db95c110af41c8ec09f46295a7c4b'.toLowerCase(),

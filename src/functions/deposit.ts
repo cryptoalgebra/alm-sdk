@@ -8,10 +8,10 @@ import { SupportedChainId, AlgebraVault } from '../types';
 import { calculateGasMargin, getGasLimit } from '../types/calculateGasMargin';
 // eslint-disable-next-line import/no-cycle
 import { getAlgebraVaultInfo, validateVaultData } from './vault';
-import { addressConfig } from '../config/addresses';
 import amountWithSlippage from '../utils/amountWithSlippage';
 import getVaultDeployer from './vaultBasics';
 import { getTokenDecimals } from './_totalBalances';
+import { VAULT_DEPOSIT_GUARD } from '../config';
 
 export async function isTokenAllowed(
   tokenIdx: 0 | 1,
@@ -43,7 +43,12 @@ async function _isDepositTokenApproved(
   const token = vault[tokenIdx === 0 ? 'tokenA' : 'tokenB'];
 
   const tokenContract = getERC20Contract(token, jsonProvider);
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress ?? '';
+  const depositGuardAddress = VAULT_DEPOSIT_GUARD[chainId as SupportedChainId];
+
+  if (!depositGuardAddress) {
+    throw new Error(`Deposit Guard  for vault ${vault.id} not found on chain ${chainId}`);
+  }
+
   const currentAllowanceBN = await tokenContract.allowance(accountAddress, depositGuardAddress);
   const tokenDecimals = await tokenContract.decimals();
 
@@ -87,7 +92,11 @@ export async function approveDepositToken(
       : parseBigInt(amount, +tokenDecimals || 18)
     : MaxUint256;
 
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress ?? '';
+  const depositGuardAddress = VAULT_DEPOSIT_GUARD[chainId as SupportedChainId];
+
+  if (!depositGuardAddress) {
+    throw new Error(`Deposit Guard  for vault ${vault.id} not found on chain ${chainId}`);
+  }
   const gasLimit =
     overrides?.gasLimit ?? calculateGasMargin(await tokenContract.estimateGas.approve(depositGuardAddress, amountBN));
 
@@ -175,7 +184,11 @@ export async function deposit(
   }
 
   // obtain Deposit Guard contract
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress ?? '';
+  const depositGuardAddress = VAULT_DEPOSIT_GUARD[chainId as SupportedChainId];
+
+  if (!depositGuardAddress) {
+    throw new Error(`Deposit Guard  for vault ${vault.id} not found on chain ${chainId}`);
+  }
   const depositGuardContract = getAlgebraVaultDepositGuardContract(depositGuardAddress, signer);
   const maxGasLimit = getGasLimit();
 
@@ -274,7 +287,8 @@ export async function depositNativeToken(
   }
 
   // obtain Deposit Guard contract
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress;
+  const depositGuardAddress = VAULT_DEPOSIT_GUARD[chainId as SupportedChainId];
+
   if (!depositGuardAddress) {
     throw new Error(`Deposit Guard not found for vault ${vaultAddress} on chain ${chainId}`);
   }

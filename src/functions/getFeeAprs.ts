@@ -3,7 +3,6 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { FeeAprData } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
-import { graphUrls } from '../graphql/constants';
 import getGraphUrls from '../utils/getGraphUrls';
 import cache from '../utils/cache';
 import { FeeAprQueryResponse } from '../types/vaultQueryData';
@@ -28,25 +27,10 @@ export async function getFeeAprs(vaultAddress: string, jsonProvider: JsonRpcProv
 
   const { chainId } = await validateVaultData(vaultAddress, jsonProvider);
 
-  // Check if the subgraph is version 2
-  const dexConfig = graphUrls[chainId];
-  if (!dexConfig) {
-    console.error(`This function is not supported on chain ${chainId}:`);
-    return null;
-  }
-
-  const { publishedUrl, url } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
 
   try {
     let result: FeeAprQueryResponse | null = null;
-
-    if (publishedUrl) {
-      try {
-        result = await sendFeeAprQueryRequest(publishedUrl, vaultAddress);
-      } catch (error) {
-        console.error('Request to published graph URL failed:', error);
-      }
-    }
 
     if (!result) {
       try {

@@ -5,12 +5,12 @@ import { SupportedChainId } from '../types';
 import getGraphUrls from '../utils/getGraphUrls';
 
 export async function getUserDeposits(accountAddress: string, vaultAddress: string, chainId: SupportedChainId) {
-  const { publishedUrl } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
 
   try {
-    if (publishedUrl) {
+    if (url) {
       const deposits = await sendDepositsQueryRequest(
-        publishedUrl,
+        url,
         vaultAddress,
         vaultDepositsQuery(0, undefined, accountAddress),
         undefined,
@@ -27,12 +27,12 @@ export async function getUserDeposits(accountAddress: string, vaultAddress: stri
 }
 
 export async function getUserWithdraws(accountAddress: string, vaultAddress: string, chainId: SupportedChainId) {
-  const { publishedUrl } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
 
   try {
-    if (publishedUrl) {
+    if (url) {
       const withdraws = await sendWithdrawsQueryRequest(
-        publishedUrl,
+        url,
         vaultAddress,
         vaultWithdrawsQuery(0, undefined, accountAddress),
         undefined,

@@ -35,7 +35,7 @@ export async function _getAllEvents(
   }
 
   const ttl = 120000;
-  const { publishedUrl, url } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
 
   const currTimestamp = Date.now();
   const startTimestamp = days
@@ -48,22 +48,12 @@ export async function _getAllEvents(
   let page = 0;
   while (!endOfData) {
     let result;
+
     try {
-      if (publishedUrl) {
-        result = await sendAllEventsQueryRequest(publishedUrl, vaultAddress, startTimestamp, query(page));
-      } else {
-        throw new Error(`Published URL is invalid on chain ${chainId}`);
-      }
-    } catch (error) {
-      if (publishedUrl) {
-        console.error('Request to published graph URL failed:', error);
-      }
-      try {
-        result = await sendAllEventsQueryRequest(url, vaultAddress, startTimestamp, query(page));
-      } catch (error2) {
-        console.error('Request to public graph URL failed:', error2);
-        throw new Error(`Could not get rebalances for vault ${vaultAddress} on chain ${chainId}`);
-      }
+      result = await sendAllEventsQueryRequest(url, vaultAddress, startTimestamp, query(page));
+    } catch (error2) {
+      console.error('Request to public graph URL failed:', error2);
+      throw new Error(`Could not get rebalances for vault ${vaultAddress} on chain ${chainId}`);
     }
     if (result) {
       allEvents.push(...result.vaultRebalances);
@@ -97,7 +87,7 @@ export async function _getRebalances(vaultAddress: string, chainId: SupportedCha
   }
 
   const ttl = 120000;
-  const { publishedUrl, url } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
 
   const currTimestamp = Date.now();
   const startTimestamp = days
@@ -109,22 +99,12 @@ export async function _getRebalances(vaultAddress: string, chainId: SupportedCha
   let page = 0;
   while (!endOfData) {
     let result;
+
     try {
-      if (publishedUrl) {
-        result = await sendRebalancesQueryRequest(publishedUrl, vaultAddress, startTimestamp, rebalancesQuery(page));
-      } else {
-        throw new Error(`Published URL is invalid on chain ${chainId}`);
-      }
-    } catch (error) {
-      if (publishedUrl) {
-        console.error('Request to published graph URL failed:', error);
-      }
-      try {
-        result = await sendRebalancesQueryRequest(url, vaultAddress, startTimestamp, rebalancesQuery(page));
-      } catch (error2) {
-        console.error('Request to public graph URL failed:', error2);
-        throw new Error(`Could not get rebalances for vault ${vaultAddress} on chain ${chainId}`);
-      }
+      result = await sendRebalancesQueryRequest(url, vaultAddress, startTimestamp, rebalancesQuery(page));
+    } catch (error2) {
+      console.error('Request to public graph URL failed:', error2);
+      throw new Error(`Could not get rebalances for vault ${vaultAddress} on chain ${chainId}`);
     }
     if (result) {
       rebalances.push(...result);
@@ -154,7 +134,7 @@ export async function _getFeesCollectedEvents(
   }
 
   const ttl = 120000;
-  const { publishedUrl, url } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
 
   const currTimestamp = Date.now();
   const startTimestamp = days
@@ -166,28 +146,14 @@ export async function _getFeesCollectedEvents(
   let page = 0;
   while (!endOfData) {
     let result;
+
     try {
-      if (publishedUrl) {
-        result = await sendCollectFeesQueryRequest(
-          publishedUrl,
-          vaultAddress,
-          startTimestamp,
-          vaultCollectFeesQuery(page),
-        );
-      } else {
-        throw new Error(`Published URL is invalid on chain ${chainId}`);
-      }
-    } catch (error) {
-      if (publishedUrl) {
-        console.error('Request to published graph URL failed:', error);
-      }
-      try {
-        result = await sendCollectFeesQueryRequest(url, vaultAddress, startTimestamp, vaultCollectFeesQuery(page));
-      } catch (error2) {
-        console.error('Request to public graph URL failed:', error2);
-        throw new Error(`Could not get collected fees for vault ${vaultAddress} on chain ${chainId}`);
-      }
+      result = await sendCollectFeesQueryRequest(url, vaultAddress, startTimestamp, vaultCollectFeesQuery(page));
+    } catch (error2) {
+      console.error('Request to public graph URL failed:', error2);
+      throw new Error(`Could not get collected fees for vault ${vaultAddress} on chain ${chainId}`);
     }
+
     if (result) {
       otherFees.push(...result);
       page += 1;
@@ -216,7 +182,7 @@ export async function _getDeposits(
   }
 
   const ttl = 120000;
-  const { publishedUrl, url } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
 
   const currTimestamp = Date.now();
   const startTimestamp = days
@@ -228,23 +194,14 @@ export async function _getDeposits(
   let page = 0;
   while (!endOfData) {
     let result;
+
     try {
-      if (publishedUrl) {
-        result = await sendDepositsQueryRequest(publishedUrl, vaultAddress, vaultDepositsQuery(page), startTimestamp);
-      } else {
-        throw new Error(`Published URL is invalid on chain ${chainId}`);
-      }
-    } catch (error) {
-      if (publishedUrl) {
-        console.error('Request to published graph URL failed:', error);
-      }
-      try {
-        result = await sendDepositsQueryRequest(url, vaultAddress, vaultDepositsQuery(page), startTimestamp);
-      } catch (error2) {
-        console.error('Request to public graph URL failed:', error2);
-        throw new Error(`Could not get deposits for vault ${vaultAddress} on chain ${chainId}`);
-      }
+      result = await sendDepositsQueryRequest(url, vaultAddress, vaultDepositsQuery(page), startTimestamp);
+    } catch (error2) {
+      console.error('Request to public graph URL failed:', error2);
+      throw new Error(`Could not get deposits for vault ${vaultAddress} on chain ${chainId}`);
     }
+
     if (result) {
       depositEvents.push(...result);
       page += 1;
@@ -273,7 +230,7 @@ export async function _getWithdraws(
   }
 
   const ttl = 120000;
-  const { publishedUrl, url } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
 
   const currTimestamp = Date.now();
   const startTimestamp = days
@@ -285,22 +242,12 @@ export async function _getWithdraws(
   let page = 0;
   while (!endOfData) {
     let result;
+
     try {
-      if (publishedUrl) {
-        result = await sendWithdrawsQueryRequest(publishedUrl, vaultAddress, vaultWithdrawsQuery(page), startTimestamp);
-      } else {
-        throw new Error(`Published URL is invalid on chain ${chainId}`);
-      }
-    } catch (error) {
-      if (publishedUrl) {
-        console.error('Request to published graph URL failed:', error);
-      }
-      try {
-        result = await sendWithdrawsQueryRequest(url, vaultAddress, vaultWithdrawsQuery(page), startTimestamp);
-      } catch (error2) {
-        console.error('Request to public graph URL failed:', error2);
-        throw new Error(`Could not get withdraws for vault ${vaultAddress} on chain ${chainId}`);
-      }
+      result = await sendWithdrawsQueryRequest(url, vaultAddress, vaultWithdrawsQuery(page), startTimestamp);
+    } catch (error2) {
+      console.error('Request to public graph URL failed:', error2);
+      throw new Error(`Could not get withdraws for vault ${vaultAddress} on chain ${chainId}`);
     }
     if (result) {
       withdrawEvents.push(...result);

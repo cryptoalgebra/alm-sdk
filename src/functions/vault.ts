@@ -101,39 +101,27 @@ export async function getAlgebraVaultInfo(
     return cachedData as AlgebraVault;
   }
 
-  const { url, publishedUrl } = getGraphUrls(chainId);
+  const { url } = getGraphUrls(chainId);
   const thisQuery = vaultQueryAlgebra();
   if (url === 'none' && jsonProvider) {
     const result = await getVaultInfoFromContract(vaultAddress, jsonProvider);
     cache.set(key, result, ttl);
     return result;
   }
+
   try {
-    if (publishedUrl) {
-      const result = await sendVaultQueryRequest(publishedUrl, vaultAddress, thisQuery);
-      const normalizedResult = normalizeVaultData(result);
-      cache.set(key, normalizedResult, ttl);
-      return normalizedResult;
-    }
-    throw new Error(`Published URL is invalid for ${vaultAddress}`);
-  } catch (error) {
-    if (publishedUrl) {
-      console.error('Request to published graph URL failed:', error);
-    }
-    try {
-      const result = await sendVaultQueryRequest(url, vaultAddress, thisQuery);
-      const normalizedResult = normalizeVaultData(result);
-      cache.set(key, normalizedResult, ttl);
-      return normalizedResult;
-    } catch (error2) {
-      console.error('Request to public graph URL failed:', error2);
-      if (jsonProvider) {
-        const result = await getVaultInfoFromContract(vaultAddress, jsonProvider);
-        cache.set(key, result, ttl);
-        return result;
-      } else {
-        throw new Error(`Could not get vault info for ${vaultAddress}`);
-      }
+    const result = await sendVaultQueryRequest(url, vaultAddress, thisQuery);
+    const normalizedResult = normalizeVaultData(result);
+    cache.set(key, normalizedResult, ttl);
+    return normalizedResult;
+  } catch (error2) {
+    console.error('Request to public graph URL failed:', error2);
+    if (jsonProvider) {
+      const result = await getVaultInfoFromContract(vaultAddress, jsonProvider);
+      cache.set(key, result, ttl);
+      return result;
+    } else {
+      throw new Error(`Could not get vault info for ${vaultAddress}`);
     }
   }
 }
@@ -192,30 +180,17 @@ async function getVaultsByTokensAB(
   }
 
   const ttl = 3600000;
-  const { url, publishedUrl } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
 
   const strVaultByTokensQuery = vaultByTokensQuery();
 
   try {
-    if (publishedUrl) {
-      const result = await sendVaultsByTokensRequest(publishedUrl, tokenA, tokenB, strVaultByTokensQuery);
-      cache.set(key, result, ttl);
-      return result;
-    } else {
-      throw new Error(`Published URL is invalid on chain ${chainId}`);
-    }
-  } catch (error) {
-    if (publishedUrl) {
-      console.error('Request to published graph URL failed:', error);
-    }
-    try {
-      const result = await sendVaultsByTokensRequest(url, tokenA, tokenB, strVaultByTokensQuery);
-      cache.set(key, result, ttl);
-      return result;
-    } catch (error2) {
-      console.error('Request to public graph URL failed:', error2);
-      throw new Error(`Could not get vaults by tokens, on chain ${chainId}`);
-    }
+    const result = await sendVaultsByTokensRequest(url, tokenA, tokenB, strVaultByTokensQuery);
+    cache.set(key, result, ttl);
+    return result;
+  } catch (error2) {
+    console.error('Request to public graph URL failed:', error2);
+    throw new Error(`Could not get vaults by tokens, on chain ${chainId}`);
   }
 }
 
@@ -241,27 +216,16 @@ export async function getVaultsByPool(poolAddress: string, chainId: SupportedCha
   if (cachedData) {
     return cachedData as string[];
   }
-  const { url, publishedUrl } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
   const ttl = 3600000;
+
   try {
-    if (publishedUrl) {
-      const result = await sendVaultsByPoolQueryRequest(publishedUrl, poolAddress, vaultByPoolQuery);
-      cache.set(key, result, ttl);
-      return result;
-    }
-    throw new Error(`Published URL is invalid on chain ${chainId}`);
-  } catch (error) {
-    if (publishedUrl) {
-      console.error('Request to published graph URL failed:', error);
-    }
-    try {
-      const result = await sendVaultsByPoolQueryRequest(url, poolAddress, vaultByPoolQuery);
-      cache.set(key, result, ttl);
-      return result;
-    } catch (error2) {
-      console.error('Request to public graph URL failed:', error2);
-      throw new Error(`Could not get vaults by pool ${poolAddress}`);
-    }
+    const result = await sendVaultsByPoolQueryRequest(url, poolAddress, vaultByPoolQuery);
+    cache.set(key, result, ttl);
+    return result;
+  } catch (error2) {
+    console.error('Request to public graph URL failed:', error2);
+    throw new Error(`Could not get vaults by pool ${poolAddress}`);
   }
 }
 
@@ -271,27 +235,16 @@ export async function getAllVaults(chainId: SupportedChainId): Promise<VaultWith
   if (cachedData) {
     return cachedData as VaultWithPoolQueryData[];
   }
-  const { url, publishedUrl } = getGraphUrls(chainId, true);
+  const { url } = getGraphUrls(chainId, true);
   const ttl = 3600000;
+
   try {
-    if (publishedUrl) {
-      const result = await sendAllVaultsQueryRequest(publishedUrl, allVaultsQuery);
-      cache.set(key, result, ttl);
-      return result;
-    }
-    throw new Error(`Published URL is invalid on chain ${chainId}`);
-  } catch (error) {
-    if (publishedUrl) {
-      console.error('Request to published graph URL failed:', error);
-    }
-    try {
-      const result = await sendAllVaultsQueryRequest(url, allVaultsQuery);
-      cache.set(key, result, ttl);
-      return result;
-    } catch (error2) {
-      console.error('Request to public graph URL failed:', error2);
-      throw new Error(`Could not get all vaults`);
-    }
+    const result = await sendAllVaultsQueryRequest(url, allVaultsQuery);
+    cache.set(key, result, ttl);
+    return result;
+  } catch (error2) {
+    console.error('Request to public graph URL failed:', error2);
+    throw new Error(`Could not get all vaults`);
   }
 }
 

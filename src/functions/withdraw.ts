@@ -4,16 +4,16 @@ import { ContractTransaction, Overrides } from '@ethersproject/contracts';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { BigNumber } from 'ethers';
 import { MaxUint256 } from '@ethersproject/constants';
-import { getAlgebraVaultDepositGuardContract, getERC20Contract, getAlgebraVaultContract } from '../contracts';
+import { getAlgebraVaultDepositGuardContract, getERC20Contract } from '../contracts';
 import parseBigInt from '../utils/parseBigInt';
 import { AlgebraVault, SupportedChainId, algebraVaultDecimals } from '../types';
 import { getGasLimit, calculateGasMargin } from '../types/calculateGasMargin';
 // eslint-disable-next-line import/no-cycle
 import { validateVaultData } from './vault';
-import { addressConfig } from '../config/addresses';
 import amountWithSlippage from '../utils/amountWithSlippage';
 import { getUserBalance } from './userBalances';
 import getVaultDeployer from './vaultBasics';
+import { VAULT_DEPOSIT_GUARD } from '../config';
 
 export async function approveVaultToken(
   accountAddress: string,
@@ -35,7 +35,7 @@ export async function approveVaultToken(
       : parseBigInt(shares, algebraVaultDecimals)
     : MaxUint256;
 
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress;
+  const depositGuardAddress = VAULT_DEPOSIT_GUARD[chainId as SupportedChainId];
   if (!depositGuardAddress) {
     throw new Error(`Deposit Guard  for vault ${vaultAddress} not found on chain ${chainId}`);
   }
@@ -57,7 +57,7 @@ async function _isVaultTokenApproved(
   const signer = jsonProvider.getSigner(accountAddress);
 
   const vaultTokenContract = getERC20Contract(vault.id, signer);
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress;
+  const depositGuardAddress = VAULT_DEPOSIT_GUARD[chainId as SupportedChainId];
   if (!depositGuardAddress) {
     throw new Error(`Deposit Guard  for vault ${vault.id} not found on chain ${chainId}`);
   }
@@ -85,9 +85,17 @@ export async function withdraw(
   jsonProvider: JsonRpcProvider,
   overrides?: Overrides,
 ): Promise<ContractTransaction> {
-  const { chainId } = await validateVaultData(vaultAddress, jsonProvider);
+  const { chainId, vault } = await validateVaultData(vaultAddress, jsonProvider);
+
   const signer = jsonProvider.getSigner(accountAddress);
-  const vaultContract = getAlgebraVaultContract(vaultAddress, signer);
+
+  const vaultDeployerAddress = getVaultDeployer(vaultAddress, chainId);
+
+  // obtain Deposit Guard contract
+  const depositGuardAddress = VAULT_DEPOSIT_GUARD[chainId as SupportedChainId];
+  if (!depositGuardAddress) {
+    throw new Error(`Deposit Guard  for vault ${vaultAddress} not found on chain ${chainId}`);
+  }
 
   const userShares = getUserBalance(accountAddress, vaultAddress, jsonProvider, true);
   const withdrawShares = shares instanceof BigNumber ? shares : parseBigInt(shares, 18);
@@ -95,14 +103,55 @@ export async function withdraw(
     throw new Error(`Withdraw amount exceeds user shares amount in vault ${vaultAddress} on chain ${chainId}`);
   }
 
-  const params: Parameters<typeof vaultContract.withdraw> = [
-    shares instanceof BigNumber ? shares : parseBigInt(shares, 18),
-    accountAddress,
-  ];
-  const gasLimit = overrides?.gasLimit ?? calculateGasMargin(await vaultContract.estimateGas.withdraw(...params));
-  params[2] = { ...overrides, gasLimit };
+  const isApproved = await _isVaultTokenApproved(accountAddress, withdrawShares, vault, chainId, jsonProvider);
+  if (!isApproved) {
+    throw new Error(`Vault token transfer is not approved for vault ${vaultAddress} on chain ${chainId}`);
+  }
 
-  return vaultContract.withdraw(...params);
+  const depositGuardContract = getAlgebraVaultDepositGuardContract(depositGuardAddress, signer);
+  const maxGasLimit = getGasLimit();
+
+  // the first call: get estimated LP amount
+  const amounts = await depositGuardContract.callStatic.forwardWithdrawFromAlgebraVault(
+    vaultAddress,
+    vaultDeployerAddress,
+    withdrawShares,
+    accountAddress,
+    BigNumber.from(0),
+    BigNumber.from(0),
+    {
+      gasLimit: maxGasLimit,
+    },
+  );
+
+  const gasLimit =
+    overrides?.gasLimit ??
+    calculateGasMargin(
+      await depositGuardContract.estimateGas.forwardWithdrawFromAlgebraVault(
+        vaultAddress,
+        vaultDeployerAddress,
+        withdrawShares,
+        accountAddress,
+        amounts[0],
+        amounts[1],
+      ),
+    );
+
+  // the second call: actual deposit transaction
+  const tx = await depositGuardContract.forwardWithdrawFromAlgebraVault(
+    vaultAddress,
+    vaultDeployerAddress,
+    withdrawShares,
+    accountAddress,
+    amounts[0],
+    amounts[1],
+    {
+      ...overrides,
+      gasLimit,
+    },
+  );
+
+  return tx;
 }
 
 export async function withdrawWithSlippage(
@@ -120,7 +169,7 @@ export async function withdrawWithSlippage(
   const vaultDeployerAddress = getVaultDeployer(vaultAddress, chainId);
 
   // obtain Deposit Guard contract
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress;
+  const depositGuardAddress = VAULT_DEPOSIT_GUARD[chainId as SupportedChainId];
   if (!depositGuardAddress) {
     throw new Error(`Deposit Guard  for vault ${vaultAddress} not found on chain ${chainId}`);
   }
@@ -218,7 +267,7 @@ export async function withdrawNativeToken(
   }
 
   // obtain Deposit Guard contract
-  const depositGuardAddress = addressConfig[chainId as SupportedChainId]?.depositGuardAddress;
+  const depositGuardAddress = VAULT_DEPOSIT_GUARD[chainId as SupportedChainId];
   if (!depositGuardAddress) {
     throw new Error(`Deposit Guard  for vault ${vaultAddress} not found on chain ${chainId}`);
   }
