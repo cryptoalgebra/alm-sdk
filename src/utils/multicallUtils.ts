@@ -3,7 +3,7 @@ import { Contract } from '@ethersproject/contracts';
 import { Interface } from '@ethersproject/abi';
 import { BigNumber, Signer } from 'ethers';
 import { SupportedChainId } from '../types';
-import { MULTICALL_ADDRESSES } from '../config/addresses';
+import { MULTICALL3_ADDRESSES } from '../config/addresses';
 import { getERC20Contract, getAlgebraVaultContract } from '../contracts';
 import multicallAbi from '../abis/multicall.json';
 
@@ -25,7 +25,7 @@ interface MulticallResponse {
 }
 
 export function getMulticallContract(chainId: SupportedChainId, provider: Provider | Signer): Contract {
-  const address = MULTICALL_ADDRESSES[chainId];
+  const address = MULTICALL3_ADDRESSES[chainId];
   if (!address) {
     throw new Error(`Multicall not supported on chain ${chainId}`);
   }
